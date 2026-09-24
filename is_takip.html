@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fakir Ürün Operasyon Açılış Takip Listesi</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    body { background-color: #fff5f7; color: #1e293b; padding: 2rem 1rem; }
+    
+    .main-wrapper { max-width: 1100px; margin: 0 auto; background: #ffffff; border-radius: 20px; border: 1px solid #fbcfe8; box-shadow: 0 10px 25px -5px rgba(244, 63, 94, 0.08); display: grid; grid-template-columns: 280px 1fr; min-height: 650px; overflow: hidden; }
+    @media (max-width: 768px) { .main-wrapper { grid-template-columns: 1fr; } }
+
+    /* SOL MENÜ: ÜRÜN LİSTESİ */
+    .sidebar { background: #fff1f2; border-right: 1px solid #fbcfe8; padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; }
+    .sidebar-title { font-size: 1.1rem; font-weight: 700; color: #be185d; display: flex; align-items: center; justify-content: space-between; }
+    
+    .product-list { display: flex; flex-direction: column; gap: 0.5rem; max-height: 450px; overflow-y: auto; }
+    .product-btn { text-align: left; padding: 0.75rem 1rem; border-radius: 10px; border: 1px solid #f43f5e33; background: #ffffff; font-size: 0.9rem; font-weight: 500; color: #475569; cursor: pointer; transition: all 0.2s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .product-btn:hover { background: #ffe4e6; color: #be185d; }
+    .product-btn.active { background: #f43f5e; color: #ffffff; font-weight: 600; border-color: #f43f5e; box-shadow: 0 4px 12px rgba(244, 63, 94, 0.2); }
+
+    .btn-add-prod { background: #db2777; color: white; border: none; border-radius: 10px; padding: 0.75rem; font-weight: 600; cursor: pointer; font-size: 0.9rem; transition: background 0.2s; text-align: center; }
+    .btn-add-prod:hover { background: #be185d; }
+
+    /* SAĞ ALAN: İŞLEM DETAYLARI */
+    .content-area { padding: 2rem; display: flex; flex-direction: column; gap: 1.5rem; }
+    
+    .content-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #fff1f2; padding-bottom: 1rem; flex-wrap: wrap; gap: 1rem; }
+    .content-header h1 { font-size: 1.35rem; font-weight: 700; color: #831843; }
+    
+    .btn-del-prod { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; border-radius: 8px; padding: 0.5rem 0.8rem; font-size: 0.8rem; font-weight: 600; cursor: pointer; }
+    .btn-del-prod:hover { background: #fecaca; }
+
+    /* İlerleme Çubuğu */
+    .progress-container { background: #fff1f2; border: 1px solid #fbcfe8; border-radius: 12px; padding: 1rem; display: flex; flex-direction: column; gap: 0.5rem; }
+    .progress-info { display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 600; color: #9f1239; }
+    .progress-bar-bg { width: 100%; height: 10px; background: #ffe4e6; border-radius: 5px; overflow: hidden; }
+    .progress-bar-fill { height: 100%; background: #f43f5e; width: 0%; transition: width 0.3s ease; }
+
+    /* Görevler */
+    .section-title { font-size: 1rem; font-weight: 700; color: #831843; margin: 1rem 0 0.5rem 0; }
+    .task-list { display: flex; flex-direction: column; gap: 0.5rem; }
+    
+    .task-item { display: flex; align-items: center; gap: 0.75rem; background: #fafaf9; border: 1px solid #e7e5e4; padding: 0.75rem 1rem; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
+    .task-item:hover { border-color: #f43f5e66; background: #fff5f7; }
+    
+    .task-item input[type="checkbox"] { width: 18px; height: 18px; accent-color: #f43f5e; cursor: pointer; }
+    .task-text { font-size: 0.9rem; color: #334155; user-select: none; flex: 1; }
+    
+    .task-item.completed { background: #fff1f2; border-color: #fbcfe8; }
+    .task-item.completed .task-text { text-decoration: line-through; color: #9f1239; }
+
+    .footer-actions { display: flex; justify-content: flex-end; margin-top: 1rem; border-top: 1px solid #fff1f2; padding-top: 1rem; }
+    .btn-reset { background: #f3f4f6; color: #4b5563; border: 1px solid #d1d5db; border-radius: 8px; padding: 0.5rem 1rem; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
+    .btn-reset:hover { background: #e5e7eb; }
+
+    .empty-state { text-align: center; color: #94a3b8; padding: 4rem 1rem; font-size: 1rem; }
+  </style>
+</head>
+<body>
+
+  <div class="main-wrapper" id="mainWrapper">
+    <!-- SOL MENÜ -->
+    <div class="sidebar">
+      <div class="sidebar-title">
+        <span>Ürün Listesi</span>
+      </div>
+      <button class="btn-add-prod" onclick="addNewProduct()">+ Yeni Ürün Ekle</button>
+      <div class="product-list" id="productList"></div>
+    </div>
+
+    <!-- SAĞ İÇERİK ALANI -->
+    <div class="content-area" id="contentArea">
+      <div class="empty-state">Lütfen soldan bir ürün seçin veya yeni ürün ekleyin.</div>
+    </div>
+  </div>
+
+  <script>
+    const checklistTemplate = [
+      {
+        category: "1. Ön Hazırlık & Onaylar",
+        tasks: [
+          { id: "t1", text: "Yeni ürün geldi, ürün bilgisi elimize ulaştı" },
+          { id: "t2", text: "Ürünün sitede açılacağı bilgisi teyit edildi" },
+          { id: "t3", text: "Ürün için pazarlama tarafına görsel çalışması talep maili atıldı" },
+          { id: "t4", text: "Ürün için fiyat istendi" },
+          { id: "t5", text: "Elde edilen fiyat ile S-Portal'dan talep açıldı" }
+        ]
+      },
+      {
+        category: "2. Sistem & Panel Açılışları",
+        tasks: [
+          { id: "t6", text: "SAP tarafı ürünü açtı mı kontrol edildi" },
+          { id: "t7", text: "Ürün T-Soft'ta açıldı" },
+          { id: "t8", text: "Ürün Entegra'da açıldı" }
+        ]
+      },
+      {
+        category: "3. Görsel & İçerik Düzenlemeleri",
+        tasks: [
+          { id: "t9", text: "Ürün görselleri boyutlandırıldı" },
+          { id: "t10", text: "Ürün görselleri siteye eklendi" },
+          { id: "t11", text: "Ürün teknik özellikleri girildi" },
+          { id: "t12", text: "Ürün açıklaması eklendi" },
+          { id: "t13", text: "Ürün kullanma kılavuzu eklendi" },
+          { id: "t14", text: "Ürün videoları eklendi" },
+          { id: "t15", text: "Ürün AI uzmanı eklendi" },
+          { id: "t16", text: "Sıkça sorulan sorular eklendi" }
+        ]
+      },
+      {
+        category: "4. Kategori, Varyant & Yayına Alma",
+        tasks: [
+          { id: "t17", text: "Ürün kategorisi seçildi" },
+          { id: "t18", text: "Renk varyantları var ise ilişkilendirildi" },
+          { id: "t19", text: "Yayına al, liste aktif, KDV dahil göster aktif edildi" }
+        ]
+      }
+    ];
+
+    let products = JSON.parse(localStorage.getItem('fakir_products')) || [];
+    let currentProductId = localStorage.getItem('fakir_current_product') || (products.length > 0 ? products[0].id : null);
+
+    function init() {
+      renderSidebar();
+      renderContent();
+    }
+
+    function renderSidebar() {
+      const listDiv = document.getElementById('productList');
+      listDiv.innerHTML = '';
+
+      if (products.length === 0) {
+        listDiv.innerHTML = '<div style="font-size: 0.85rem; color: #94a3b8; text-align: center; padding: 1rem;">Henüz ürün eklenmedi.</div>';
+        return;
+      }
+
+      products.forEach(p => {
+        const btn = document.createElement('button');
+        btn.className = 'product-btn' + (p.id === currentProductId ? ' active' : '');
+        btn.innerText = p.name;
+        btn.onclick = () => {
+          currentProductId = p.id;
+          localStorage.setItem('fakir_current_product', currentProductId);
+          init();
+        };
+        listDiv.appendChild(btn);
+      });
+    }
+
+    function renderContent() {
+      const area = document.getElementById('contentArea');
+      
+      if (!currentProductId || products.length === 0) {
+        area.innerHTML = '<div class="empty-state">Fakir Ürün Operasyon Takip Listesi\'ne hoş geldiniz!<br>Başlamak için sol üstteki <b>+ Yeni Ürün Ekle</b> butonuna tıklayın.</div>';
+        return;
+      }
+
+      const currentProduct = products.find(p => p.id === currentProductId);
+      if (!currentProduct) {
+        currentProductId = products[0] ? products[0].id : null;
+        renderContent();
+        return;
+      }
+
+      let totalTasks = 0;
+      let completedTasks = 0;
+
+      checklistTemplate.forEach(sec => {
+        sec.tasks.forEach(() => totalTasks++);
+      });
+
+      checklistTemplate.forEach(sec => {
+        sec.tasks.forEach(task => {
+          const key = `${currentProductId}_${task.id}`;
+          if (localStorage.getItem(key) === 'true') completedTasks++;
+        });
+      });
+
+      const percentage = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+
+      let html = `
+        <div class="content-header">
+          <h1>${currentProduct.name}</h1>
+          <button class="btn-del-prod" onclick="deleteCurrentProduct()">Bu Ürünü Sil</button>
+        </div>
+
+        <div class="progress-container">
+          <div class="progress-info">
+            <span>Ürün İlerleme Durumu</span>
+            <span>${completedTasks} / ${totalTasks} (%${percentage})</span>
+          </div>
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill" style="width: ${percentage}%"></div>
+          </div>
+        </div>
+      `;
+
+      checklistTemplate.forEach(section => {
+        html += `<div class="section-title">${section.category}</div><div class="task-list">`;
+        section.tasks.forEach(task => {
+          const key = `${currentProductId}_${task.id}`;
+          const isChecked = localStorage.getItem(key) === 'true';
+          html += `
+            <label class="task-item ${isChecked ? 'completed' : ''}">
+              <input type="checkbox" id="${task.id}" ${isChecked ? 'checked' : ''} onchange="toggleTask('${task.id}')">
+              <span class="task-text">${task.text}</span>
+            </label>
+          `;
+        });
+        html += `</div>`;
+      });
+
+      html += `
+        <div class="footer-actions">
+          <button class="btn-reset" onclick="resetCurrentProduct()">Bu Ürünün İşaretlerini Sıfırla</button>
+        </div>
+      `;
+
+      area.innerHTML = html;
+    }
+
+    function addNewProduct() {
+      const name = prompt("Açılacak ürünün adını / modelini yazın (Örn: Fakir Vion Flex):");
+      if (name && name.trim() !== "") {
+        const newId = 'prod_' + Date.now();
+        products.push({ id: newId, name: name.trim() });
+        currentProductId = newId;
+        saveState();
+        init();
+      }
+    }
+
+    function deleteCurrentProduct() {
+      const current = products.find(p => p.id === currentProductId);
+      if (confirm(`"${current ? current.name : 'Bu ürün'}" silinecek. Emin misin?`)) {
+        checklistTemplate.forEach(sec => sec.tasks.forEach(t => {
+          localStorage.removeItem(`${currentProductId}_${t.id}`);
+        }));
+
+        products = products.filter(p => p.id !== currentProductId);
+        currentProductId = products.length > 0 ? products[0].id : null;
+        saveState();
+        init();
+      }
+    }
+
+    function toggleTask(id) {
+      const checkbox = document.getElementById(id);
+      const key = `${currentProductId}_${id}`;
+      localStorage.setItem(key, checkbox.checked);
+      renderContent();
+    }
+
+    function resetCurrentProduct() {
+      if (confirm("Bu ürün için yapılan tüm işaretlemeler sıfırlansın mı?")) {
+        checklistTemplate.forEach(sec => {
+          sec.tasks.forEach(task => {
+            localStorage.removeItem(`${currentProductId}_${task.id}`);
+          });
+        });
+        renderContent();
+      }
+    }
+
+    function saveState() {
+      localStorage.setItem('fakir_products', JSON.stringify(products));
+      localStorage.setItem('fakir_current_product', currentProductId);
+    }
+
+    init();
+  </script>
+</body>
+</html>

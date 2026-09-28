@@ -165,11 +165,11 @@
                             <div class="flex justify-between items-center mb-1.5">
                                 <label class="text-[11px] font-bold text-brand-400 uppercase tracking-wider flex items-center space-x-1.5">
                                     <i class="fa-solid fa-note-sticky"></i>
-                                    <span>Operasyon / Gecikme Notu (Depoya gelmesine rağmen canlıya alınmama nedeni vb.)</span>
+                                    <span>Operasyon / Gecikme Notu</span>
                                 </label>
                                 <span class="text-[10px] text-slate-400 italic">Otomatik Kaydedilir</span>
                             </div>
-                            <textarea id="productNote" oninput="saveProductNote()" rows="2" placeholder="Örn: Görsel eksikliği nedeniyle pazaryeri onayında bekliyor..." class="w-full bg-slate-900/90 border border-slate-700 rounded-xl p-3 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-brand-500 transition resize-none"></textarea>
+                            <textarea id="productNote" oninput="saveProductNote()" rows="2" placeholder="Not ekleyin..." class="w-full bg-slate-900/90 border border-slate-700 rounded-xl p-3 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-brand-500 transition resize-none"></textarea>
                         </div>
                     </div>
 
@@ -578,7 +578,6 @@
             if (!p.logistics) p.logistics = {};
             p.logistics.note = noteText;
 
-            // Yazarken sürekli istek atmaması için 500ms gecikmeli kaydediyoruz
             clearTimeout(noteTimeout);
             noteTimeout = setTimeout(() => {
                 saveProductToFirestore(p);

@@ -76,13 +76,29 @@
 
         <!-- 1. GÖRÜNÜM: ANA SAYFA ÜRÜN LİSTESİ TABLOSU -->
         <div id="homeView" class="flex-1 flex flex-col overflow-hidden bg-slate-50 p-6">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 flex-shrink-0">
+            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6 flex-shrink-0">
                 <div>
                     <h2 class="text-lg font-bold text-slate-800">Ürün Operasyon Takip Listesi</h2>
-                    <p class="text-xs text-slate-500">Tüm ürünlerin genel durumunu, tarihlerini ve tamamlanma oranlarını buradan takip edebilirsiniz.</p>
+                    <p class="text-xs text-slate-500">Tüm ürünlerin genel durumunu, tarihlerini ve pazaryeri durumlarını buradan takip edebilirsiniz.</p>
                 </div>
-                <div class="flex items-center space-x-3 w-full sm:w-auto">
-                    <div class="relative flex-1 sm:w-72">
+                <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto">
+                    <!-- Pazaryeri / Durum Filtreleme Açılır Menüsü -->
+                    <div class="relative">
+                        <select id="filterSelect" onchange="filterHomeTable()" class="bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-700 focus:outline-none focus:border-brand-500 transition shadow-sm cursor-pointer">
+                            <option value="all">🔍 Tüm Ürünler</option>
+                            <option value="missing_trendyol">❌ Trendyol'da Açık Olmayanlar</option>
+                            <option value="missing_hepsiburada">❌ Hepsiburada'da Açık Olmayanlar</option>
+                            <option value="missing_amazon">❌ Amazon'da Açık Olmayanlar</option>
+                            <option value="missing_n11">❌ N11'de Açık Olmayanlar</option>
+                            <option value="missing_beymen">❌ Beymen'de Açık Olmayanlar</option>
+                            <option value="missing_idefix">❌ İdefix'te Açık Olmayanlar</option>
+                            <option value="missing_pazarama">❌ Pazarama'da Açık Olmayanlar</option>
+                            <option value="incomplete">⏳ Tamamlanmamış Ürünler (%100 Altı)</option>
+                        </select>
+                    </div>
+
+                    <!-- Arama Çubuğu -->
+                    <div class="relative flex-1 sm:w-64">
                         <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-xs"></i>
                         <input type="text" id="homeSearchInput" oninput="filterHomeTable()" placeholder="Ürün adı veya kod ile ara..." class="w-full bg-white border border-slate-200 rounded-xl pl-9 pr-3 py-2 text-xs focus:outline-none focus:border-brand-500 transition shadow-sm">
                     </div>
@@ -408,7 +424,7 @@
                 products.push({ id: docSnap.id, ...docSnap.data() });
             });
 
-            renderHomeTable(document.getElementById('homeSearchInput').value);
+            filterHomeTable();
             if (currentProductId) {
                 renderProductDetails();
             }
@@ -425,19 +441,44 @@
             await setDoc(doc(db, "products", product.id), product);
         }
 
-        function renderHomeTable(filter = "") {
+        function filterHomeTable() {
+            const query = document.getElementById('homeSearchInput').value.toLowerCase();
+            const filterType = document.getElementById('filterSelect').value;
             const tableBody = document.getElementById('productTableBody');
             tableBody.innerHTML = "";
             
-            const filtered = products.filter(p => 
-                p.name.toLowerCase().includes(filter.toLowerCase()) || 
-                p.sku.toLowerCase().includes(filter.toLowerCase())
-            );
+            const filtered = products.filter(p => {
+                const matchesQuery = p.name.toLowerCase().includes(query) || p.sku.toLowerCase().includes(query);
+                if (!matchesQuery) return false;
 
-            document.getElementById('tableProductCount').textContent = `${products.length} Ürün`;
+                if (filterType === 'all') return true;
+                if (filterType === 'incomplete') return calculateProgress(p) < 100;
+
+                // Pazaryeri eksik filtreleri (marketplaces dizisindeki indekslere göre)
+                // marketplaces: Trendyol(0), Hepsiburada(1), Amazon(2), N11(3), Beymen(4), İdefix(5), Pazarama(6)
+                const mIndexMap = {
+                    'missing_trendyol': 0,
+                    'missing_hepsiburada': 1,
+                    'missing_amazon': 2,
+                    'missing_n11': 3,
+                    'missing_beymen': 4,
+                    'missing_idefix': 5,
+                    'missing_pazarama': 6
+                };
+
+                if (filterType in mIndexMap) {
+                    const idx = mIndexMap[filterType];
+                    const isOpen = p.marketplaces && p.marketplaces[idx];
+                    return !isOpen; // Açık olanda false döner, açık olmayanı listeler
+                }
+
+                return true;
+            });
+
+            document.getElementById('tableProductCount').textContent = `${filtered.length} Ürün`;
 
             if (filtered.length === 0) {
-                tableBody.innerHTML = `<tr><td colspan="8" class="text-center py-12 text-slate-400">Kayıtlı ürün bulunamadı.</td></tr>`;
+                tableBody.innerHTML = `<tr><td colspan="8" class="text-center py-12 text-slate-400">Fistreye uygun ürün bulunamadı.</td></tr>`;
                 return;
             }
 
@@ -500,7 +541,7 @@
             document.getElementById('homeView').classList.remove('hidden');
             document.getElementById('backToHomeBtn').classList.remove('flex');
             document.getElementById('backToHomeBtn').classList.add('hidden');
-            renderHomeTable(document.getElementById('homeSearchInput').value);
+            filterHomeTable();
         }
 
         function renderProductDetails() {
@@ -652,11 +693,6 @@
             noteTimeout = setTimeout(() => {
                 saveProductToFirestore(p, "Operasyon notu güncellendi");
             }, 800);
-        }
-
-        function filterHomeTable() {
-            const query = document.getElementById('homeSearchInput').value;
-            renderHomeTable(query);
         }
 
         function openNewProductModal() {

@@ -44,7 +44,7 @@
             </div>
             <div>
                 <h1 class="text-lg font-bold tracking-tight">E-Ticaret Operasyon ve Koordinasyon Paneli</h1>
-                <p class="text-xs text-slate-400">Canlı Ortak Çalışma Paneli (Cloud Sync)</p>
+                <p class="text-xs text-slate-400">Canlı Ortak Çalışma & Ürün Takvim Modülü</p>
             </div>
         </div>
         <div class="flex items-center space-x-4">
@@ -86,14 +86,14 @@
             </div>
         </aside>
 
-        <!-- SAĞ ALAN: DETAYLI KONTROL MATRİSİ -->
+        <!-- SAĞ ALAN: DETAYLI KONTROL MATRİSİ VE TAKVİM -->
         <main class="flex-1 flex flex-col overflow-hidden bg-slate-50/50">
             <div id="noProductSelected" class="flex-1 flex flex-col items-center justify-center text-center p-8">
                 <div class="w-16 h-16 bg-slate-100 text-slate-400 rounded-2xl flex items-center justify-center text-2xl mb-4 shadow-sm">
                     <i class="fa-solid fa-arrow-left"></i>
                 </div>
                 <h3 class="text-base font-bold text-slate-700 mb-1">İşlem Yapılacak Ürünü Seçin</h3>
-                <p class="text-xs text-slate-500 max-w-sm">Sol menüden bir ürün seçerek operasyon ağacını ve pazaryeri entegrasyon durumlarını görüntüleyebilir ve yönetebilirsiniz.</p>
+                <p class="text-xs text-slate-500 max-w-sm">Sol menüden bir ürün seçerek gümrük tarihlerini, stok taleplerini ve operasyon aşamalarını yönetebilirsiniz.</p>
             </div>
 
             <div id="productDetailView" class="flex-1 flex flex-col overflow-hidden hidden">
@@ -122,8 +122,44 @@
                     </div>
                 </div>
 
-                <!-- Kaydırma Alanı: Ağaç Yapısı -->
+                <!-- Kaydırma Alanı -->
                 <div class="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-6">
+
+                    <!-- YENİ BÖLÜM: GÜMRÜK, STOK VE ÜRÜN TAKVİMİ ÖZET KARTI -->
+                    <div class="bg-gradient-to-r from-slate-900 to-slate-800 rounded-2xl p-5 text-white shadow-lg">
+                        <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+                            <div>
+                                <h3 class="text-xs font-bold uppercase tracking-wider text-brand-400 mb-1 flex items-center space-x-2">
+                                    <i class="fa-solid fa-calendar-days"></i>
+                                    <span>Lojistik & Gümrük Takvimi (Yönetici Özeti)</span>
+                                </h3>
+                                <p class="text-xs text-slate-300">Gümrük geçiş tarihi, talep edilen stok miktarı ve kritik sevkiyat aşamaları.</p>
+                            </div>
+                            <button onclick="openLogisticsModal()" class="bg-brand-500 hover:bg-brand-600 text-white px-4 py-2 rounded-xl text-xs font-bold transition shadow flex items-center space-x-2">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                                <span>Tarih & Stok Bilgilerini Güncelle</span>
+                            </button>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-5 pt-4 border-t border-slate-700">
+                            <div class="bg-slate-800/80 p-3.5 rounded-xl border border-slate-700">
+                                <div class="text-[10px] text-slate-400 font-semibold uppercase">Talep Edilen Stok</div>
+                                <div id="statStockQty" class="text-lg font-bold text-brand-400 mt-1">Belirtilmedi</div>
+                            </div>
+                            <div class="bg-slate-800/80 p-3.5 rounded-xl border border-slate-700">
+                                <div class="text-[10px] text-slate-400 font-semibold uppercase">Gümrükten Geçiş Tarihi</div>
+                                <div id="statCustomsDate" class="text-sm font-bold text-white mt-1">Girilmedi</div>
+                            </div>
+                            <div class="bg-slate-800/80 p-3.5 rounded-xl border border-slate-700">
+                                <div class="text-[10px] text-slate-400 font-semibold uppercase">Depoya Giriş Tarihi</div>
+                                <div id="statWarehouseDate" class="text-sm font-bold text-white mt-1">Girilmedi</div>
+                            </div>
+                            <div class="bg-slate-800/80 p-3.5 rounded-xl border border-slate-700">
+                                <div class="text-[10px] text-slate-400 font-semibold uppercase">Pazaryeri Canlı Tarihi</div>
+                                <div id="statLaunchDate" class="text-sm font-bold text-white mt-1">Girilmedi</div>
+                            </div>
+                        </div>
+                    </div>
 
                     <!-- 1. BÖLÜM: ÜST ORTAK AKIŞ -->
                     <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
@@ -136,7 +172,7 @@
                         </div>
                     </div>
 
-                    <!-- 2. BÖLÜM: İKİYE AYRILAN KOLLAR (T-Soft vs Entegra) -->
+                    <!-- 2. BÖLÜM: İKİYE AYRILAN KOLLAR -->
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
                         <!-- SOL KOL: T-SOFT OPERASYONLARI -->
@@ -199,6 +235,42 @@
         </div>
     </div>
 
+    <!-- LOJİSTİK VE TAKVİM GÜNCELLEME MODALI -->
+    <div id="logisticsModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-2xl w-full max-w-lg p-6 shadow-2xl border border-slate-100">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-base font-bold text-slate-800">Lojistik, Stok ve Takvim Bilgileri</h3>
+                <button onclick="closeLogisticsModal()" class="text-slate-400 hover:text-slate-600">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <form id="logisticsForm" onsubmit="handleLogisticsSubmit(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Talep Edilen Stok Adedi</label>
+                    <input type="text" id="logStockQty" placeholder="Örn: 500 Adet" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-brand-500">
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Gümrükten Geçiş</label>
+                        <input type="date" id="logCustomsDate" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-brand-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Depoya Giriş</label>
+                        <input type="date" id="logWarehouseDate" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-brand-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Pazaryeri Canlı</label>
+                        <input type="date" id="logLaunchDate" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-brand-500">
+                    </div>
+                </div>
+                <div class="flex justify-end space-x-3 pt-2">
+                    <button type="button" onclick="closeLogisticsModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition">İptal</button>
+                    <button type="submit" class="bg-brand-600 hover:bg-brand-700 text-white px-5 py-2 rounded-xl text-xs font-semibold transition shadow-sm">Bilgileri Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- FIREBASE VE UYGULAMA MANTIĞI -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
@@ -253,11 +325,13 @@
         let products = [];
         let currentProductId = null;
 
-        // Global fonksiyonları window nesnesine bağlıyoruz
         window.filterProducts = filterProducts;
         window.openNewProductModal = openNewProductModal;
         window.closeNewProductModal = closeNewProductModal;
         window.handleProductSubmit = handleProductSubmit;
+        window.openLogisticsModal = openLogisticsModal;
+        window.closeLogisticsModal = closeLogisticsModal;
+        window.handleLogisticsSubmit = handleLogisticsSubmit;
         window.deleteCurrentProduct = deleteCurrentProduct;
         window.exportToExcel = exportToExcel;
         window.toggleTopFlow = toggleTopFlow;
@@ -265,7 +339,6 @@
         window.toggleMarketplace = toggleMarketplace;
         window.selectProduct = selectProduct;
 
-        // Firestore Canlı Dinleyici (Realtime Sync)
         onSnapshot(collection(db, "products"), (snapshot) => {
             products = [];
             snapshot.forEach((docSnap) => {
@@ -374,6 +447,12 @@
             document.getElementById('detailProductSku').textContent = p.sku;
             document.getElementById('detailProductCat').textContent = p.category;
 
+            // Lojistik ve Takvim Bilgileri
+            document.getElementById('statStockQty').textContent = p.logistics?.stockQty || "Belirtilmedi";
+            document.getElementById('statCustomsDate').textContent = p.logistics?.customsDate ? formatDate(p.logistics.customsDate) : "Girilmedi";
+            document.getElementById('statWarehouseDate').textContent = p.logistics?.warehouseDate ? formatDate(p.logistics.warehouseDate) : "Girilmedi";
+            document.getElementById('statLaunchDate').textContent = p.logistics?.launchDate ? formatDate(p.logistics.launchDate) : "Girilmedi";
+
             const progress = calculateProgress(p);
             document.getElementById('detailProgressBar').style.width = `${progress}%`;
             document.getElementById('detailProgressText').textContent = `%${progress}`;
@@ -442,6 +521,12 @@
             });
         }
 
+        function formatDate(dateStr) {
+            const parts = dateStr.split('-');
+            if(parts.length === 3) return `${parts[2]}.${parts[1]}.${parts[0]}`;
+            return dateStr;
+        }
+
         function toggleTopFlow(idx) {
             const p = products.find(x => x.id === currentProductId);
             if (!p) return;
@@ -493,12 +578,46 @@
                 category,
                 topFlow: {},
                 tsoft: {},
-                marketplaces: {}
+                marketplaces: {},
+                logistics: { stockQty: "", customsDate: "", warehouseDate: "", launchDate: "" }
             };
 
             saveProductToFirestore(newProduct);
             closeNewProductModal();
             currentProductId = newProduct.id;
+        }
+
+        function openLogisticsModal() {
+            const p = products.find(x => x.id === currentProductId);
+            if (!p) return;
+            
+            document.getElementById('logStockQty').value = p.logistics?.stockQty || "";
+            document.getElementById('logCustomsDate').value = p.logistics?.customsDate || "";
+            document.getElementById('logWarehouseDate').value = p.logistics?.warehouseDate || "";
+            document.getElementById('logLaunchDate').value = p.logistics?.launchDate || "";
+
+            document.getElementById('logisticsModal').classList.remove('hidden');
+        }
+
+        function closeLogisticsModal() {
+            document.getElementById('logisticsModal').classList.add('hidden');
+        }
+
+        async function handleLogisticsSubmit(e) {
+            e.preventDefault();
+            const p = products.find(x => x.id === currentProductId);
+            if (!p) return;
+
+            p.logistics = {
+                stockQty: document.getElementById('logStockQty').value,
+                customsDate: document.getElementById('logCustomsDate').value,
+                warehouseDate: document.getElementById('logWarehouseDate').value,
+                launchDate: document.getElementById('logLaunchDate').value
+            };
+
+            await saveProductToFirestore(p);
+            closeLogisticsModal();
+            renderProductDetails();
         }
 
         async function deleteCurrentProduct() {
@@ -515,7 +634,7 @@
 
             let csvContent = "\uFEFF"; 
 
-            let headers = ["Ürün Adı", "Ürün Kodu", "Kategori", "Genel Tamamlanma"];
+            let headers = ["Ürün Adı", "Ürün Kodu", "Kategori", "Talep Edilen Stok", "Gümrükten Geçiş", "Depoya Giriş", "Pazaryeri Canlı", "Genel Tamamlanma"];
             topFlowSteps.forEach(s => headers.push(s));
             tsoftSteps.forEach(s => headers.push(s.name));
             marketplaces.forEach(m => headers.push(`${m.name} Açıldı mı?`));
@@ -528,6 +647,10 @@
                     `"${p.name.replace(/"/g, '""')}"`,
                     `"${p.sku.replace(/"/g, '""')}"`,
                     `"${p.category.replace(/"/g, '""')}"`,
+                    `"${p.logistics?.stockQty || ""}"`,
+                    `"${p.logistics?.customsDate || ""}"`,
+                    `"${p.logistics?.warehouseDate || ""}"`,
+                    `"${p.logistics?.launchDate || ""}"`,
                     `"%${progress}"`
                 ];
 
@@ -550,7 +673,7 @@
             const url = URL.createObjectURL(blob);
             const link = document.createElement("a");
             link.setAttribute("href", url);
-            link.setAttribute("download", "e-ticaret_detayli_operasyon_raporu.csv");
+            link.setAttribute("download", "e-ticaret_lojistik_ve_operasyon_raporu.csv");
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);

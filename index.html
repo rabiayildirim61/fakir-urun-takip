@@ -117,7 +117,7 @@
                     </div>
                 </div>
 
-                <!-- Kaydırma Alanı: Ağaç Yapısı (Üst Adımlar -> Sol T-Soft / Sağ Entegra) -->
+                <!-- Kaydırma Alanı: Ağaç Yapısı -->
                 <div class="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-6">
 
                     <!-- 1. BÖLÜM: ÜST ORTAK AKIŞ -->
@@ -206,17 +206,17 @@
         ];
 
         const tsoftSteps = [
-            "Ürün görselleri boyutlandırıldı",
-            "Teknik özellik girildi",
-            "Ürün açıklaması girildi",
-            "Kullanım kılavuzu eklendi",
-            "Sıkça sorulan sorular eklendi",
-            "Ürün videoları eklendi",
-            "Ürün AI Uzmanı eklendi",
-            "Kategori seçildi",
-            "Yayın durumu aktif edildi",
-            "KDV dahil göster aktif edildi",
-            "Liste aktif edildi"
+            { name: "Ürün görselleri boyutlandırıldı", tool: null },
+            { name: "Teknik özellik girildi", tool: null },
+            { name: "Ürün açıklaması girildi", tool: "Product Editör", url: "https://product-editor2.vercel.app/" },
+            { name: "Kullanım kılavuzu eklendi", tool: null },
+            { name: "Sıkça sorulan sorular eklendi", tool: "SSS Editör", url: "https://sss-nine-coral.vercel.app/" },
+            { name: "Ürün videoları eklendi", tool: null },
+            { name: "Ürün AI Uzmanı eklendi", tool: null },
+            { name: "Kategori seçildi", tool: null },
+            { name: "Yayın durumu aktif edildi", tool: null },
+            { name: "KDV dahil göster aktif edildi", tool: null },
+            { name: "Liste aktif edildi", tool: null }
         ];
 
         const marketplaces = [
@@ -359,13 +359,27 @@
 
             const tsoftContainer = document.getElementById('tsoftContainer');
             tsoftContainer.innerHTML = "";
-            tsoftSteps.forEach((step, idx) => {
+            tsoftSteps.forEach((stepObj, idx) => {
                 const checked = p.tsoft && p.tsoft[idx] ? true : false;
-                const el = document.createElement('label');
-                el.className = `flex items-center space-x-3 p-3 rounded-xl border transition cursor-pointer ${checked ? 'bg-indigo-50/60 border-indigo-200 text-indigo-900' : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100/70'}`;
+                const el = document.createElement('div');
+                el.className = `flex items-center justify-between p-3 rounded-xl border transition ${checked ? 'bg-indigo-50/60 border-indigo-200 text-indigo-900' : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100/70'}`;
+                
+                let toolButtonHtml = '';
+                if (stepObj.tool) {
+                    toolButtonHtml = `
+                        <a href="${stepObj.url}" target="_blank" onclick="event.stopPropagation()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg transition flex items-center space-x-1 shadow-sm">
+                            <i class="fa-solid fa-external-link-alt text-[9px]"></i>
+                            <span>${stepObj.tool}</span>
+                        </a>
+                    `;
+                }
+
                 el.innerHTML = `
-                    <input type="checkbox" ${checked ? 'checked' : ''} onchange="toggleTsoft(${idx})" class="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500">
-                    <span class="text-xs font-semibold">${step}</span>
+                    <label class="flex items-center space-x-3 flex-1 cursor-pointer">
+                        <input type="checkbox" ${checked ? 'checked' : ''} onchange="toggleTsoft(${idx})" class="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500">
+                        <span class="text-xs font-semibold">${stepObj.name}</span>
+                    </label>
+                    ${toolButtonHtml}
                 `;
                 tsoftContainer.appendChild(el);
             });

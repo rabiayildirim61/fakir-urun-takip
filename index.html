@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="tr" class="h-full">
+<html lang="tr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,518 +8,472 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script>
         tailwind.config = {
             theme: {
                 extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                    },
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                        }
+                    }
                 }
             }
         }
     </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
 </head>
-<body class="h-full bg-slate-50 text-slate-800 font-sans antialiased flex flex-col overflow-hidden">
+<body class="bg-slate-50 text-slate-800 h-screen flex flex-col overflow-hidden">
 
-    <header class="bg-slate-900 text-white shadow-md flex items-center justify-between px-6 py-4 shrink-0 z-20">
+    <!-- ÜST HEADER -->
+    <header class="bg-slate-900 text-white shadow-md px-6 py-4 flex justify-between items-center z-10 flex-shrink-0">
         <div class="flex items-center space-x-3">
-            <div class="bg-indigo-600 text-white p-2.5 rounded-xl shadow-inner flex items-center justify-center">
-                <i class="fa-solid fa-network-wired text-lg"></i>
+            <div class="bg-brand-500 text-white p-2.5 rounded-xl shadow-lg flex items-center justify-center">
+                <i class="fa-solid fa-boxes-stacked text-xl"></i>
             </div>
             <div>
                 <h1 class="text-lg font-bold tracking-tight">E-Ticaret Operasyon ve Koordinasyon Paneli</h1>
-                <p class="text-xs text-slate-400">Ürün Açılış ve Pazaryeri Entegrasyon Takip Sistemi</p>
+                <p class="text-xs text-slate-400">Ürün Açılış ve Pazaryeri Entegrasyon Takibi</p>
             </div>
         </div>
         <div class="flex items-center space-x-4">
-            <div class="hidden sm:flex items-center space-x-2 bg-slate-800 px-3 py-1.5 rounded-full border border-slate-700 text-xs text-slate-300">
-                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                <span>Sistem Aktif & Senkronize</span>
-            </div>
-            <div class="flex items-center space-x-3 bg-slate-800/80 px-3.5 py-1.5 rounded-xl border border-slate-700">
-                <div class="w-8 h-8 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center font-bold text-sm">
-                    A
+            <button onclick="openNewProductModal()" class="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-xl text-sm font-semibold transition shadow-sm flex items-center space-x-2">
+                <i class="fa-solid fa-plus"></i>
+                <span>Yeni Ürün Ekle</span>
+            </button>
+            <div class="flex items-center space-x-2 border-l border-slate-700 pl-4">
+                <div class="w-9 h-9 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-brand-400 font-bold text-sm shadow-inner">
+                    61
                 </div>
-                <span class="text-sm font-medium text-slate-200">Ajan</span>
+                <span class="text-sm font-medium text-slate-200">Operasyon Ekibi</span>
             </div>
         </div>
     </header>
 
-    <div class="flex-1 flex overflow-hidden relative">
+    <!-- ANA İÇERİK ALANI -->
+    <div class="flex flex-1 overflow-hidden">
 
-        <!-- Sol Sidebar: Ürün Listesi -->
-        <aside id="sidebar" class="w-80 bg-white border-r border-slate-200 flex flex-col shrink-0 transition-all duration-300 z-10">
-            <div class="p-4 border-b border-slate-100 flex flex-col space-y-3">
-                <div class="flex items-center justify-between">
-                    <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Ürün Takip Listesi</span>
-                    <button onclick="openNewProductModal()" class="inline-flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-3 py-2 rounded-xl shadow-sm transition-all transform active:scale-95">
-                        <i class="fa-solid fa-plus mr-1.5"></i> Yeni Ürün
-                    </button>
-                </div>
+        <!-- SOL KENAR ÇUBUĞU: ÜRÜN LİSTESİ -->
+        <aside class="w-80 bg-white border-r border-slate-200 flex flex-col flex-shrink-0">
+            <div class="p-4 border-b border-slate-100 flex items-center justify-between">
+                <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400">Ürün Takip Listesi</h2>
+                <span id="productCountBadge" class="bg-slate-100 text-slate-600 text-xs px-2 py-0.5 rounded-full font-semibold">0 Ürün</span>
+            </div>
+            <div class="p-3 border-b border-slate-100 bg-slate-50">
                 <div class="relative">
-                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                        <i class="fa-solid fa-search text-xs"></i>
-                    </span>
-                    <input type="text" id="productSearch" oninput="renderProductList()" placeholder="Ürün adı veya SKU ara..." class="w-full pl-9 pr-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-xs"></i>
+                    <input type="text" id="searchInput" oninput="filterProducts()" placeholder="Ürün veya kod ara..." class="w-full bg-white border border-slate-200 rounded-xl pl-9 pr-3 py-2 text-xs focus:outline-none focus:border-brand-500 transition">
                 </div>
             </div>
-            <div id="productListContainer" class="flex-1 overflow-y-auto p-3 space-y-2">
-                <!-- Dinamik ürünler -->
+            <div id="productList" class="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-2.5">
+                <!-- Ürün kartları dinamik yüklenecek -->
             </div>
         </aside>
 
-        <!-- Ana Çalışma Alanı -->
-        <main class="flex-1 bg-slate-100 overflow-y-auto p-6 flex flex-col space-y-6">
-            
-            <div id="activeProductHeader" class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <div>
-                    <div class="flex items-center space-x-2 text-xs font-semibold text-indigo-600 mb-1">
-                        <span id="activeProductCategoryBadge" class="bg-indigo-50 px-2.5 py-0.5 rounded-full">Kategori</span>
-                        <span class="text-slate-300">•</span>
-                        <span id="activeProductSku" class="text-slate-500 font-mono">SKU: ---</span>
-                    </div>
-                    <h2 id="activeProductTitle" class="text-xl font-bold text-slate-900">Bir ürün seçin veya ekleyin</h2>
+        <!-- SAĞ ALAN: DETAYLI KONTROL MATRİSİ -->
+        <main class="flex-1 flex flex-col overflow-hidden bg-slate-50/50">
+            <div id="noProductSelected" class="flex-1 flex flex-col items-center justify-center text-center p-8">
+                <div class="w-16 h-16 bg-slate-100 text-slate-400 rounded-2xl flex items-center justify-center text-2xl mb-4 shadow-sm">
+                    <i class="fa-solid fa-arrow-left"></i>
                 </div>
-                <div class="flex items-center space-x-3">
-                    <button onclick="deleteCurrentProduct()" class="px-3.5 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-semibold rounded-xl border border-rose-100 transition-all">
-                        <i class="fa-solid fa-trash-can mr-1.5"></i> Ürünü Sil
-                    </button>
-                    <div class="bg-slate-50 border border-slate-200 px-4 py-2 rounded-xl flex items-center space-x-3">
+                <h3 class="text-base font-bold text-slate-700 mb-1">İşlem Yapılacak Ürünü Seçin</h3>
+                <p class="text-xs text-slate-500 max-w-sm">Sol menüden bir ürün seçerek operasyon ağacını ve pazaryeri entegrasyon durumlarını görüntüleyebilir ve yönetebilirsiniz.</p>
+            </div>
+
+            <div id="productDetailView" class="flex-1 flex flex-col overflow-hidden hidden">
+                <!-- Ürün Başlık ve İlerleme Özeti -->
+                <div class="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between flex-shrink-0">
+                    <div>
+                        <div class="flex items-center space-x-2 mb-1">
+                            <span id="detailProductSku" class="bg-brand-50 text-brand-700 text-xs font-bold px-2.5 py-0.5 rounded-md border border-brand-100">SKU</span>
+                            <span id="detailProductCat" class="text-xs font-medium text-slate-400">Kategori</span>
+                        </div>
+                        <h2 id="detailProductName" class="text-xl font-bold text-slate-900">Ürün Adı</h2>
+                    </div>
+                    <div class="flex items-center space-x-6">
                         <div class="text-right">
-                            <div class="text-[10px] uppercase font-bold text-slate-400">Genel İlerleme</div>
-                            <div id="overallProgressText" class="text-sm font-bold text-slate-700">%0</div>
-                        </div>
-                        <div class="w-10 h-10 rounded-full flex items-center justify-center bg-indigo-50 text-indigo-600 font-bold text-xs" id="overallProgressCircle">
-                            0%
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-6">
-                <div class="flex items-center justify-between pb-4 mb-4 border-b border-slate-100">
-                    <div class="flex items-center space-x-3">
-                        <div class="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-sm">
-                            <i class="fa-solid fa-list-check"></i>
-                        </div>
-                        <div>
-                            <h3 class="font-bold text-slate-900">Ana Akış & Ön Hazırlık Aşamaları</h3>
-                            <p class="text-xs text-slate-400">Ürün açılış sürecinin ilk adımları ve talepler</p>
-                        </div>
-                    </div>
-                    <div class="text-xs font-semibold text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-xl" id="mainFlowProgressText">
-                        %0 Tamamlandı
-                    </div>
-                </div>
-                <div id="mainFlowContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                    <!-- Dinamik doldurulacak -->
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
-
-                <!-- Sol Sütun: T-Soft Operasyonları -->
-                <div class="xl:col-span-7 bg-white rounded-2xl shadow-sm border border-slate-200/80 p-6 flex flex-col">
-                    <div class="flex items-center justify-between pb-4 mb-4 border-b border-slate-100">
-                        <div class="flex items-center space-x-3">
-                            <div class="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-sm">
-                                <i class="fa-solid fa-server"></i>
-                            </div>
-                            <div>
-                                <h3 class="font-bold text-slate-900">T-Soft Operasyonları</h3>
-                                <p class="text-xs text-slate-400">Altyapı, içerik ve yayın ayarları</p>
+                            <div class="text-xs text-slate-400 font-medium mb-1">Genel Tamamlanma</div>
+                            <div class="flex items-center space-x-3">
+                                <div class="w-32 bg-slate-100 h-2.5 rounded-full overflow-hidden">
+                                    <div id="detailProgressBar" class="bg-brand-500 h-full transition-all duration-300 rounded-full" style="width: 0%"></div>
+                                </div>
+                                <span id="detailProgressText" class="text-sm font-bold text-slate-700">%0</span>
                             </div>
                         </div>
-                        <div class="text-xs font-semibold text-blue-600 bg-blue-50 px-3 py-1.5 rounded-xl" id="tsoftProgressText">
-                            %0 Tamamlandı
-                        </div>
-                    </div>
-                    <div id="tsoftChecklistContainer" class="space-y-2">
-                        <!-- Dinamik doldurulacak -->
-                    </div>
-                </div>
-
-                <!-- Sağ Sütun: Entegra & Pazaryerleri -->
-                <div class="xl:col-span-5 bg-white rounded-2xl shadow-sm border border-slate-200/80 p-6 flex flex-col">
-                    <div class="flex items-center justify-between pb-4 mb-4 border-b border-slate-100">
-                        <div class="flex items-center space-x-3">
-                            <div class="w-9 h-9 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center font-bold text-sm">
-                                <i class="fa-solid fa-store"></i>
-                            </div>
-                            <div>
-                                <h3 class="font-bold text-slate-900">Entegra & Pazaryerleri</h3>
-                                <p class="text-xs text-slate-400">Pazaryeri açılış ve yayın durumları</p>
-                            </div>
-                        </div>
-                        <div class="text-xs font-semibold text-purple-600 bg-purple-50 px-3 py-1.5 rounded-xl" id="marketplaceProgressText">
-                            %0 Açıldı
-                        </div>
-                    </div>
-                    
-                    <!-- Master Toggle Header -->
-                    <div class="mb-4 bg-purple-50/50 border border-purple-100 p-3.5 rounded-xl flex items-center justify-between">
-                        <div class="flex items-center space-x-2.5">
-                            <i class="fa-solid fa-circle-check text-purple-600 text-sm"></i>
-                            <span class="text-xs font-bold text-purple-900">Tüm pazaryerlerine açıldı mı?</span>
-                        </div>
-                        <button onclick="toggleAllMarketplaces()" class="text-xs font-semibold bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded-lg shadow-sm transition-all">
-                            Tümünü Seç / Kaldır
+                        <button onclick="deleteCurrentProduct()" class="text-slate-400 hover:text-red-500 p-2 rounded-xl hover:bg-red-50 transition text-sm" title="Ürünü Sil">
+                            <i class="fa-solid fa-trash-can"></i>
                         </button>
                     </div>
-
-                    <div id="marketplaceChecklistContainer" class="space-y-2.5">
-                        <!-- Dinamik doldurulacak -->
-                    </div>
                 </div>
 
+                <!-- Kaydırma Alanı: Ağaç Yapısı (Üst Adımlar -> Sol T-Soft / Sağ Entegra) -->
+                <div class="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-6">
+
+                    <!-- 1. BÖLÜM: ÜST ORTAK AKIŞ -->
+                    <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4 flex items-center space-x-2">
+                            <i class="fa-solid fa-route text-brand-600"></i>
+                            <span>1. Genel Başlangıç ve Onay Adımları</span>
+                        </h3>
+                        <div id="topFlowContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                            <!-- Dinamik doldurulacak -->
+                        </div>
+                    </div>
+
+                    <!-- 2. BÖLÜM: İKİYE AYRILAN KOLLAR (T-Soft vs Entegra) -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+                        <!-- SOL KOL: T-SOFT OPERASYONLARI -->
+                        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex flex-col">
+                            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4 flex items-center space-x-2">
+                                <i class="fa-solid fa-laptop-code text-indigo-600"></i>
+                                <span>2. T-Soft Operasyon Adımları</span>
+                            </h3>
+                            <div id="tsoftContainer" class="space-y-2.5 flex-1">
+                                <!-- Dinamik doldurulacak -->
+                            </div>
+                        </div>
+
+                        <!-- SAĞ KOL: ENTEGRA & PAZARYERLERİ TAKİBİ -->
+                        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex flex-col">
+                            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4 flex items-center space-x-2">
+                                <i class="fa-solid fa-store text-amber-600"></i>
+                                <span>3. Entegra & Pazaryerleri Takibi</span>
+                            </h3>
+                            <div id="marketplacesContainer" class="space-y-3 flex-1">
+                                <!-- Dinamik doldurulacak -->
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
             </div>
         </main>
+
     </div>
 
-    <div id="newProductModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-100 transform transition-all">
-            <div class="flex items-center justify-between pb-4 mb-4 border-b border-slate-100">
-                <h3 class="font-bold text-slate-900 text-lg">Yeni Ürün Açılış Kaydı</h3>
-                <button onclick="closeNewProductModal()" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition-all">
-                    <i class="fa-solid fa-xmark"></i>
+    <!-- YENİ ÜRÜN MODALI -->
+    <div id="productModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl border border-slate-100">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-base font-bold text-slate-800">Yeni Ürün Ekle</h3>
+                <button onclick="closeNewProductModal()" class="text-slate-400 hover:text-slate-600">
+                    <i class="fa-solid fa-xmark text-lg"></i>
                 </button>
             </div>
-            <form id="newProductForm" onsubmit="handleCreateProduct(event)" class="space-y-4">
+            <form id="productForm" onsubmit="handleProductSubmit(event)" class="space-y-4">
                 <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Ürün Adı</label>
-                    <input type="text" id="modalProductName" required placeholder="Örn: 61 Hobi Özel Set" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Ürün Adı</label>
+                    <input type="text" id="modalName" required placeholder="Örn: 61 Hobi Vion Core V-100" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-brand-500">
                 </div>
                 <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Stok Kodu (SKU)</label>
-                    <input type="text" id="modalProductSku" required placeholder="Örn: 61-HBI-SET-02" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-mono">
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Ürün Kodu (SKU)</label>
+                    <input type="text" id="modalSku" required placeholder="Örn: 61-VION-100" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-brand-500">
                 </div>
                 <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Kategori / Seri</label>
-                    <input type="text" id="modalProductCategory" required placeholder="Örn: Hobi ve Eğlence" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Kategori</label>
+                    <input type="text" id="modalCategory" required placeholder="Örn: Hobi ve Eğlence" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-brand-500">
                 </div>
-                <div class="pt-2 flex items-center justify-end space-x-3">
-                    <button type="button" onclick="closeNewProductModal()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-semibold rounded-xl transition-all">İptal</button>
-                    <button type="submit" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl shadow-sm transition-all">Oluştur ve Başla</button>
+                <div class="flex justify-end space-x-3 pt-2">
+                    <button type="button" onclick="closeNewProductModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition">İptal</button>
+                    <button type="submit" class="bg-brand-600 hover:bg-brand-700 text-white px-5 py-2 rounded-xl text-xs font-semibold transition shadow-sm">Ürünü Oluştur</button>
                 </div>
             </form>
         </div>
     </div>
 
+    <!-- JAVASCRIPT MANTIĞI -->
     <script>
-        // 1. Ana Akış (Sequential Main Flow) Adımları
-        const mainFlowSteps = [
-            { id: "mf_1", label: "Yeni Ürün Bilgisi Geldi" },
-            { id: "mf_2", label: "Fiyat İstendi" },
-            { id: "mf_3", label: "S-Portal Talep Açıldı" },
-            { id: "mf_4", label: "SAP'den Ürün Açıldı" },
-            { id: "mf_5", label: "Pazarlamadan İçerik Talep Edildi" },
-            { id: "mf_6", label: "Ürün Stok Talep Maili Atıldı" }
+        // Ağaç Veri Şablonları
+        const topFlowSteps = [
+            "Yeni Ürün Bilgisi Geldi",
+            "Fiyat İstendi",
+            "S-Portal Talep Açıldı",
+            "SAP'den Ürün Açıldı",
+            "Pazarlamadan İçerik Talep Edildi",
+            "Ürün Stok Talep Maili Atıldı"
         ];
 
-        // 2. T-Soft Operasyonları Checklist Adımları
         const tsoftSteps = [
-            { id: "ts_1", label: "Ürün görselleri boyutlandırıldı" },
-            { id: "ts_2", label: "Teknik özellik girildi" },
-            { id: "ts_3", label: "Ürün açıklaması girildi" },
-            { id: "ts_4", label: "Kullanım kılavuzu eklendi" },
-            { id: "ts_5", label: "Sıkça sorulan sorular eklendi" },
-            { id: "ts_6", label: "Ürün videoları eklendi" },
-            { id: "ts_7", label: "Ürün alt uzmanı eklendi" },
-            { id: "ts_8", label: "Kategori seçildi" },
-            { id: "ts_9", label: "Yayın durumu aktif et" },
-            { id: "ts_10", label: "KDV dahil göster aktif et" },
-            { id: "ts_11", label: "Liste aktif aktif et" }
+            "Ürün görselleri boyutlandırıldı",
+            "Teknik özellik girildi",
+            "Ürün açıklaması girildi",
+            "Kullanım kılavuzu eklendi",
+            "Sıkça sorulan sorular eklendi",
+            "Ürün videoları eklendi",
+            "Ürün alt uzmanı eklendi",
+            "Kategori seçildi",
+            "Yayın durumu aktif et",
+            "KDV dahil göster aktif et",
+            "Liste aktif aktif et"
         ];
 
-        // 3. Entegra & Pazaryerleri Listesi
-        const marketplacesList = [
-            { id: "mp_trendyol", name: "Trendyol", color: "text-orange-600", bg: "bg-orange-50", icon: "fa-bag-shopping" },
-            { id: "mp_hepsiburada", name: "Hepsiburada", color: "text-amber-600", bg: "bg-amber-50", icon: "fa-store" },
-            { id: "mp_amazon", name: "Amazon", color: "text-amber-700", bg: "bg-amber-50/80", icon: "fa-globe" },
-            { id: "mp_n11", name: "N11", color: "text-rose-600", bg: "bg-rose-50", icon: "fa-shop" },
-            { id: "mp_beymen", name: "Beymen", color: "text-neutral-900", bg: "bg-neutral-100", icon: "fa-gem" },
-            { id: "mp_idefix", name: "İdefix", color: "text-teal-700", bg: "bg-teal-50", icon: "fa-book" },
-            { id: "mp_pazarama", name: "Pazarama", color: "text-pink-600", bg: "bg-pink-50", icon: "fa-cart-shopping" }
+        const marketplaces = [
+            { name: "Trendyol", icon: "fa-bag-shopping", color: "text-orange-500" },
+            { name: "Hepsiburada", icon: "fa-store", color: "text-amber-500" },
+            { name: "Amazon", icon: "fa-amazon", color: "text-yellow-600" },
+            { name: "N11", icon: "fa-shop", color: "text-red-500" },
+            { name: "Beymen", icon: "fa-gem", color: "text-slate-800" },
+            { name: "İdefix", icon: "fa-book", color: "text-blue-600" },
+            { name: "Pazarama", icon: "fa-cart-shopping", color: "text-purple-600" }
         ];
 
-        // Varsayılan Örnek Ürün Kaydı
-        const defaultProducts = [
+        // Veri Saklama
+        let products = JSON.parse(localStorage.getItem('fakir_ecommerce_products')) || [
             {
-                id: "prod_61hobi",
+                id: "1",
                 name: "61 Hobi Vion Core V-100",
                 sku: "61-VION-100",
                 category: "Hobi ve Eğlence",
-                mainFlow: { mf_1: true, mf_2: true },
-                tsoftData: { ts_1: true, ts_2: true, ts_8: true },
-                marketplaces: { mp_trendyol: true, mp_hepsiburada: true, mp_amazon: false, mp_n11: false, mp_beymen: false, mp_idefix: false, mp_pazarama: false }
+                topFlow: {},
+                tsoft: {},
+                marketplaces: {}
             }
         ];
 
-        let products = [];
-        let activeProductId = null;
+        let currentProductId = products.length > 0 ? products[0].id : null;
 
-        // Uygulama Başlatma
-        function initApp() {
-            const saved = localStorage.getItem('ecommerce_ops_products_v4');
-            if (saved) {
-                try {
-                    products = JSON.parse(saved);
-                } catch (e) {
-                    products = defaultProducts;
-                }
-            } else {
-                products = defaultProducts;
-            }
-
-            if (products.length > 0) {
-                activeProductId = products[0].id;
-            }
-
-            renderProductList();
-            renderActiveProductWorkspace();
+        function saveToLocalStorage() {
+            localStorage.setItem('fakir_ecommerce_products', JSON.stringify(products));
         }
 
-        // Ürün Listesini Render Et
-        function renderProductList() {
-            const container = document.getElementById('productListContainer');
-            const query = document.getElementById('productSearch').value.toLowerCase();
-            container.innerHTML = '';
+        function initApp() {
+            renderProductList();
+            if (currentProductId) {
+                selectProduct(currentProductId);
+            } else {
+                toggleView();
+            }
+        }
 
-            const filtered = products.filter(p => p.name.toLowerCase().includes(query) || p.sku.toLowerCase().includes(query));
+        function renderProductList(filter = "") {
+            const listContainer = document.getElementById('productList');
+            listContainer.innerHTML = "";
+            
+            const filtered = products.filter(p => 
+                p.name.toLowerCase().includes(filter.toLowerCase()) || 
+                p.sku.toLowerCase().includes(filter.toLowerCase())
+            );
+
+            document.getElementById('productCountBadge.innerHTML`').textContent = `${products.length} Ürün`;
 
             if (filtered.length === 0) {
-                container.innerHTML = `<div class="text-center py-8 text-xs text-slate-400">Ürün bulunamadı.</div>`;
+                listContainer.innerHTML = `<div class="text-center py-8 text-xs text-slate-400">Ürün bulunamadı</div>`;
                 return;
             }
 
-            filtered.forEach(prod => {
-                const isActive = prod.id === activeProductId;
-                const div = document.createElement('div');
-                div.className = `p-3.5 rounded-2xl cursor-pointer transition-all border ${isActive ? 'bg-indigo-50/60 border-indigo-200 shadow-sm' : 'bg-white border-slate-100 hover:bg-slate-50'}`;
-                div.onclick = () => selectProduct(prod.id);
+            filtered.forEach(p => {
+                const isSelected = p.id === currentProductId;
+                const progress = calculateProgress(p);
 
-                div.innerHTML = `
-                    <div class="flex items-center justify-between mb-1">
-                        <span class="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md ${isActive ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-600'}">${prod.sku}</span>
-                        <span class="text-[10px] font-medium text-slate-400">${prod.category}</span>
+                const card = document.createElement('div');
+                card.className = `p-3.5 rounded-2xl border transition cursor-pointer flex flex-col space-y-2.5 ${isSelected ? 'border-brand-500 bg-brand-50/40 shadow-sm' : 'border-slate-200 hover:border-slate-300 bg-white'}`;
+                card.onclick = () => selectProduct(p.id);
+
+                card.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200">${p.sku}</span>
+                        <span class="text-[11px] text-slate-400 font-medium truncate max-w-[120px]">${p.category}</span>
                     </div>
-                    <div class="text-xs font-bold text-slate-900 truncate">${prod.name}</div>
+                    <div>
+                        <h4 class="text-xs font-bold text-slate-800 line-clamp-1">${p.name}</h4>
+                    </div>
+                    <div class="space-y-1 pt-1">
+                        <div class="flex justify-between items-center text-[10px]">
+                            <span class="text-slate-400 font-medium">Tamamlanma</span>
+                            <span class="font-bold text-slate-700">%${progress}</span>
+                        </div>
+                        <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                            <div class="bg-brand-500 h-full rounded-full transition-all duration-300" style="width: ${progress}%"></div>
+                        </div>
+                    </div>
                 `;
-                container.appendChild(div);
+                listContainer.appendChild(card);
             });
+        }
+
+        function calculateProgress(p) {
+            let total = topFlowSteps.length + tsoftSteps.length + marketplaces.length;
+            let completed = 0;
+
+            topFlowSteps.forEach((_, idx) => { if (p.topFlow && p.topFlow[idx]) completed++; });
+            tsoftSteps.forEach((_, idx) => { if (p.tsoft && p.tsoft[idx]) completed++; });
+            marketplaces.forEach((_, idx) => { if (p.marketplaces && p.marketplaces[idx]) completed++; });
+
+            return Math.round((completed / total) * 100);
         }
 
         function selectProduct(id) {
-            activeProductId = id;
-            renderProductList();
-            renderActiveProductWorkspace();
+            currentProductId = id;
+            renderProductList(document.getElementById('searchInput').value);
+            toggleView();
+            renderProductDetails();
         }
 
-        // Aktif Ürün Çalışma Alanını Güncelle
-        function renderActiveProductWorkspace() {
-            const prod = products.find(p => p.id === activeProductId);
-            if (!prod) {
-                document.getElementById('activeProductTitle').innerText = "Ürün Bulunamadı";
-                document.getElementById('activeProductSku').innerText = "SKU: ---";
-                document.getElementById('activeProductCategoryBadge').innerText = "---";
-                document.getElementById('mainFlowContainer').innerHTML = "";
-                document.getElementById('tsoftChecklistContainer').innerHTML = "";
-                document.getElementById('marketplaceChecklistContainer').innerHTML = "";
-                return;
+        function toggleView() {
+            const noSel = document.getElementById('noProductSelected');
+            const detail = document.getElementById('productDetailView');
+            if (currentProductId) {
+                noSel.classList.add('hidden');
+                detail.classList.remove('hidden');
+            } else {
+                noSel.classList.remove('hidden');
+                detail.classList.add('hidden');
             }
-
-            document.getElementById('activeProductTitle').innerText = prod.name;
-            document.getElementById('activeProductSku').innerText = `SKU: ${prod.sku}`;
-            document.getElementById('activeProductCategoryBadge').innerText = prod.category;
-
-            renderMainFlow(prod);
-            renderTsoftChecklist(prod);
-            renderMarketplaceChecklist(prod);
-            updateProgressStats(prod);
         }
 
-        // 1. Ana Akış Render
-        function renderMainFlow(prod) {
-            const container = document.getElementById('mainFlowContainer');
-            container.innerHTML = '';
+        function renderProductDetails() {
+            const p = products.find(x => x.id === currentProductId);
+            if (!p) return;
 
-            mainFlowSteps.forEach(step => {
-                const isChecked = !!prod.mainFlow[step.id];
-                const div = document.createElement('label');
-                div.className = `flex items-center space-x-3 p-3 rounded-xl border cursor-pointer transition-all ${isChecked ? 'bg-indigo-50/40 border-indigo-200 text-indigo-900 font-semibold' : 'bg-slate-50/60 border-slate-100 text-slate-700 hover:bg-slate-50'}`;
-                
-                div.innerHTML = `
-                    <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleMainFlowItem('${step.id}')" class="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500 cursor-pointer">
-                    <span class="text-xs ${isChecked ? 'line-through text-slate-400' : ''}">${step.label}</span>
+            document.getElementById('detailProductName').textContent = p.name;
+            document.getElementById('detailProductSku').textContent = p.sku;
+            document.getElementById('detailProductCat').textContent = p.category;
+
+            const progress = calculateProgress(p);
+            document.getElementById('detailProgressBar').style.width = `${progress}%`;
+            document.getElementById('detailProgressText').textContent = `%${progress}`;
+
+            // 1. Üst Akış Render
+            const topContainer = document.getElementById('topFlowContainer');
+            topContainer.innerHTML = "";
+            topFlowSteps.forEach((step, idx) => {
+                const checked = p.topFlow && p.topFlow[idx] ? true : false;
+                const el = document.createElement('label');
+                el.className = `flex items-center space-x-3 p-3 rounded-xl border transition cursor-pointer ${checked ? 'bg-brand-50/60 border-brand-200 text-brand-900' : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100/70'}`;
+                el.innerHTML = `
+                    <input type="checkbox" ${checked ? 'checked' : ''} onchange="toggleTopFlow(${idx})" class="w-4 h-4 text-brand-600 rounded border-slate-300 focus:ring-brand-500">
+                    <span class="text-xs font-semibold">${step}</span>
                 `;
-                container.appendChild(div);
+                topContainer.appendChild(el);
             });
-        }
 
-        function toggleMainFlowItem(stepId) {
-            const prod = products.find(p => p.id === activeProductId);
-            if (!prod) return;
-            if (!prod.mainFlow) prod.mainFlow = {};
-            prod.mainFlow[stepId] = !prod.mainFlow[stepId];
-            saveAndRefresh();
-        }
-
-        // 2. T-Soft Checklist Render
-        function renderTsoftChecklist(prod) {
-            const container = document.getElementById('tsoftChecklistContainer');
-            container.innerHTML = '';
-
-            tsoftSteps.forEach(step => {
-                const isChecked = !!prod.tsoftData[step.id];
-                const label = document.createElement('label');
-                label.className = `flex items-center space-x-3 p-2.5 rounded-xl border cursor-pointer transition-all ${isChecked ? 'bg-blue-50/40 border-blue-200' : 'bg-white border-slate-100 hover:bg-slate-50'}`;
-                
-                label.innerHTML = `
-                    <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleTsoftItem('${step.id}')" class="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500 cursor-pointer">
-                    <span class="text-xs font-medium text-slate-700 ${isChecked ? 'line-through text-slate-400' : ''}">${step.label}</span>
+            // 2. T-Soft Render
+            const tsoftContainer = document.getElementById('tsoftContainer');
+            tsoftContainer.innerHTML = "";
+            tsoftSteps.forEach((step, idx) => {
+                const checked = p.tsoft && p.tsoft[idx] ? true : false;
+                const el = document.createElement('label');
+                el.className = `flex items-center space-x-3 p-3 rounded-xl border transition cursor-pointer ${checked ? 'bg-indigo-50/60 border-indigo-200 text-indigo-900' : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100/70'}`;
+                el.innerHTML = `
+                    <input type="checkbox" ${checked ? 'checked' : ''} onchange="toggleTsoft(${idx})" class="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500">
+                    <span class="text-xs font-semibold">${step}</span>
                 `;
-                container.appendChild(label);
+                tsoftContainer.appendChild(el);
             });
-        }
 
-        function toggleTsoftItem(stepId) {
-            const prod = products.find(p => p.id === activeProductId);
-            if (!prod) return;
-            if (!prod.tsoftData) prod.tsoftData = {};
-            prod.tsoftData[stepId] = !prod.tsoftData[stepId];
-            saveAndRefresh();
-        }
-
-        // 3. Entegra Pazaryerleri Render
-        function renderMarketplaceChecklist(prod) {
-            const container = document.getElementById('marketplaceChecklistContainer');
-            container.innerHTML = '';
-
-            marketplacesList.forEach(mp => {
-                const isOpened = !!prod.marketplaces[mp.id];
-                const div = document.createElement('label');
-                div.className = `flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all ${isOpened ? 'bg-purple-50/50 border-purple-200 shadow-sm' : 'bg-white border-slate-100 hover:bg-slate-50'}`;
-                
-                div.innerHTML = `
+            // 3. Pazaryerleri Render
+            const marketContainer = document.getElementById('marketplacesContainer');
+            marketContainer.innerHTML = "";
+            marketplaces.forEach((m, idx) => {
+                const checked = p.marketplaces && p.marketplaces[idx] ? true : false;
+                const el = document.createElement('div');
+                el.className = `flex items-center justify-between p-3 rounded-xl border transition cursor-pointer ${checked ? 'bg-amber-50/60 border-amber-200' : 'bg-slate-50 border-slate-200 hover:bg-slate-100/70'}`;
+                el.onclick = (e) => {
+                    if(e.target.tagName !== 'INPUT') {
+                        const checkbox = el.querySelector('input');
+                        checkbox.checked = !checkbox.checked;
+                        toggleMarketplace(idx);
+                    }
+                };
+                el.innerHTML = `
                     <div class="flex items-center space-x-3">
-                        <div class="w-7 h-7 rounded-lg ${mp.bg} ${mp.color} flex items-center justify-center text-xs font-bold">
-                            <i class="fa-solid ${mp.icon}"></i>
-                        </div>
-                        <span class="text-xs font-bold text-slate-800">${mp.name}</span>
+                        <i class="fa-solid ${m.icon} ${m.color} text-base w-5 text-center"></i>
+                        <span class="text-xs font-bold text-slate-800">${m.name} Açıldı mı?</span>
                     </div>
-                    <div class="flex items-center space-x-2">
-                        <span class="text-[10px] font-semibold ${isOpened ? 'text-purple-700 bg-purple-100 px-2 py-0.5 rounded-md' : 'text-slate-400'}">${isOpened ? 'Açıldı' : 'Bekliyor'}</span>
-                        <input type="checkbox" ${isOpened ? 'checked' : ''} onchange="toggleMarketplace('${mp.id}')" class="w-4 h-4 text-purple-600 rounded border-slate-300 focus:ring-purple-500 cursor-pointer">
-                    </div>
+                    <input type="checkbox" ${checked ? 'checked' : ''} onchange="toggleMarketplace(${idx})" class="w-4 h-4 text-amber-600 rounded border-slate-300 focus:ring-amber-500">
                 `;
-                container.appendChild(div);
+                marketContainer.appendChild(el);
             });
         }
 
-        function toggleMarketplace(mpId) {
-            const prod = products.find(p => p.id === activeProductId);
-            if (!prod) return;
-            if (!prod.marketplaces) prod.marketplaces = {};
-            prod.marketplaces[mpId] = !prod.marketplaces[mpId];
-            saveAndRefresh();
+        function toggleTopFlow(idx) {
+            const p = products.find(x => x.id === currentProductId);
+            if (!p) return;
+            if (!p.topFlow) p.topFlow = {};
+            p.topFlow[idx] = !p.topFlow[idx];
+            saveToLocalStorage();
+            renderProductList(document.getElementById('searchInput').value);
+            renderProductDetails();
         }
 
-        function toggleAllMarketplaces() {
-            const prod = products.find(p => p.id === activeProductId);
-            if (!prod) return;
-            if (!prod.marketplaces) prod.marketplaces = {};
-            
-            const allChecked = marketplacesList.every(mp => prod.marketplaces[mp.id]);
-            marketplacesList.forEach(mp => {
-                prod.marketplaces[mp.id] = !allChecked;
-            });
-            saveAndRefresh();
+        function toggleTsoft(idx) {
+            const p = products.find(x => x.id === currentProductId);
+            if (!p) return;
+            if (!p.tsoft) p.tsoft = {};
+            p.tsoft[idx] = !p.tsoft[idx];
+            saveToLocalStorage();
+            renderProductList(document.getElementById('searchInput').value);
+            renderProductDetails();
         }
 
-        // İstatistik ve İlerleme Hesaplama
-        function updateProgressStats(prod) {
-            // Main Flow
-            let mfCount = mainFlowSteps.filter(s => prod.mainFlow[s.id]).length;
-            let mfPct = Math.round((mfCount / mainFlowSteps.length) * 100);
-            document.getElementById('mainFlowProgressText').innerText = `%${mfPct} Tamamlandı`;
-
-            // T-Soft
-            let tsCount = tsoftSteps.filter(s => prod.tsoftData[s.id]).length;
-            let tsPct = Math.round((tsCount / tsoftSteps.length) * 100);
-            document.getElementById('tsoftProgressText').innerText = `%${tsPct} Tamamlandı`;
-
-            // Marketplaces
-            let mpCount = marketplacesList.filter(mp => prod.marketplaces[mp.id]).length;
-            let mpPct = Math.round((mpCount / marketplacesList.length) * 100);
-            document.getElementById('marketplaceProgressText').innerText = `%${mpPct} Açıldı`;
-
-            // Overall
-            let overall = Math.round((mfPct + tsPct + mpPct) / 3);
-            document.getElementById('overallProgressText').innerText = `%${overall}`;
-            document.getElementById('overallProgressCircle').innerText = `${overall}%`;
+        function toggleMarketplace(idx) {
+            const p = products.find(x => x.id === currentProductId);
+            if (!p) return;
+            if (!p.marketplaces) p.marketplaces = {};
+            p.marketplaces[idx] = !p.marketplaces[idx];
+            saveToLocalStorage();
+            renderProductList(document.getElementById('searchInput').value);
+            renderProductDetails();
         }
 
-        function saveAndRefresh() {
-            localStorage.setItem('ecommerce_ops_products_v4', JSON.stringify(products));
-            renderActiveProductWorkspace();
+        function filterProducts() {
+            const query = document.getElementById('searchInput').value;
+            renderProductList(query);
         }
 
-        // Yeni Ürün Modal
         function openNewProductModal() {
-            document.getElementById('newProductModal').classList.remove('hidden');
-            document.getElementById('modalProductName').value = '';
-            document.getElementById('modalProductSku').value = '';
-            document.getElementById('modalProductCategory').value = '';
+            document.getElementById('productModal').classList.remove('hidden');
         }
 
         function closeNewProductModal() {
-            document.getElementById('newProductModal').classList.add('hidden');
+            document.getElementById('productModal').classList.add('hidden');
+            document.getElementById('productForm').reset();
         }
 
-        function handleCreateProduct(e) {
+        function handleProductSubmit(e) {
             e.preventDefault();
-            const name = document.getElementById('modalProductName').value.trim();
-            const sku = document.getElementById('modalProductSku').value.trim();
-            const category = document.getElementById('modalProductCategory').value.trim();
+            const name = document.getElementById('modalName').value;
+            const sku = document.getElementById('modalSku').value;
+            const category = document.getElementById('modalCategory').value;
 
-            if (!name || !sku) return;
-
-            const newProd = {
-                id: 'prod_' + Date.now(),
-                name: name,
-                sku: sku,
-                category: category || 'Genel',
-                mainFlow: {},
-                tsoftData: {},
+            const newProduct = {
+                id: Date.now().toString(),
+                name,
+                sku,
+                category,
+                topFlow: {},
+                tsoft: {},
                 marketplaces: {}
             };
 
-            products.unshift(newProd);
-            activeProductId = newProd.id;
+            products.unshift(newProduct);
+            saveToLocalStorage();
             closeNewProductModal();
-            saveAndRefresh();
-            renderProductList();
+            selectProduct(newProduct.id);
         }
 
         function deleteCurrentProduct() {
-            if (products.length <= 1) {
-                alert("En az bir ürün kaydı kalmalıdır.");
-                return;
-            }
-            if (confirm("Bu ürün kaydını ve tüm ilerleme verilerini silmek istediğinize emin misiniz?")) {
-                products = products.filter(p => p.id !== activeProductId);
-                activeProductId = products[0].id;
-                saveAndRefresh();
-                renderProductList();
-            }
+            if (!confirm("Bu ürünü silmek istediğinize emin misiniz?")) return;
+            products = products.filter(x => x.id !== currentProductId);
+            saveToLocalStorage();
+            currentProductId = products.length > 0 ? products[0].id : null;
+            initApp();
         }
 
-        window.onload = function() {
-            initApp();
-        };
+        window.onload = initApp;
     </script>
 </body>
 </html>

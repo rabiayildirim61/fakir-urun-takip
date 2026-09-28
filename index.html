@@ -28,7 +28,7 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
-        .custom-scrollbar::-webkit-scrollbar { width: 5px; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
@@ -38,7 +38,7 @@
 
     <!-- ÜST HEADER -->
     <header class="bg-slate-900 text-white shadow-md px-6 py-4 flex justify-between items-center z-10 flex-shrink-0">
-        <div class="flex items-center space-x-3">
+        <div class="flex items-center space-x-3 cursor-pointer" onclick="goHome()">
             <div class="bg-brand-500 text-white p-2.5 rounded-xl shadow-lg flex items-center justify-center">
                 <i class="fa-solid fa-boxes-stacked text-xl"></i>
             </div>
@@ -48,6 +48,11 @@
             </div>
         </div>
         <div class="flex items-center space-x-3">
+            <!-- Ana Sayfaya Dön Butonu (Detaydayken görünür) -->
+            <button id="backToHomeBtn" onclick="goHome()" class="bg-slate-800 hover:bg-slate-700 text-white px-3.5 py-2 rounded-xl text-xs font-semibold transition shadow-sm hidden items-center space-x-2 border border-slate-700">
+                <i class="fa-solid fa-arrow-left"></i>
+                <span>Ürün Listesine Dön</span>
+            </button>
             <!-- Excel Export Butonu -->
             <button onclick="exportToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-xl text-xs font-semibold transition shadow-sm flex items-center space-x-2">
                 <i class="fa-solid fa-file-excel"></i>
@@ -67,181 +72,194 @@
     </header>
 
     <!-- ANA İÇERİK ALANI -->
-    <div class="flex flex-1 overflow-hidden">
+    <div class="flex flex-1 overflow-hidden relative">
 
-        <!-- SOL KENAR ÇUBUĞU: ÜRÜN LİSTESİ -->
-        <aside class="w-80 bg-white border-r border-slate-200 flex flex-col flex-shrink-0">
-            <div class="p-4 border-b border-slate-100 flex items-center justify-between">
-                <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400">Ürün Takip Listesi</h2>
-                <span id="productCountBadge" class="bg-slate-100 text-slate-600 text-xs px-2 py-0.5 rounded-full font-semibold">0 Ürün</span>
-            </div>
-            <div class="p-3 border-b border-slate-100 bg-slate-50">
-                <div class="relative">
-                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-xs"></i>
-                    <input type="text" id="searchInput" oninput="filterProducts()" placeholder="Ürün veya kod ara..." class="w-full bg-white border border-slate-200 rounded-xl pl-9 pr-3 py-2 text-xs focus:outline-none focus:border-brand-500 transition">
+        <!-- 1. GÖRÜNÜM: ANA SAYFA ÜRÜN LİSTESİ TABLOSU -->
+        <div id="homeView" class="flex-1 flex flex-col overflow-hidden bg-slate-50 p-6">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 flex-shrink-0">
+                <div>
+                    <h2 class="text-lg font-bold text-slate-800">Ürün Operasyon Takip Listesi</h2>
+                    <p class="text-xs text-slate-500">Tüm ürünlerin genel durumunu, tarihlerini ve tamamlanma oranlarını buradan takip edebilirsiniz.</p>
                 </div>
-            </div>
-            <div id="productList" class="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-2.5">
-                <!-- Ürün kartları dinamik yüklenecek -->
-            </div>
-        </aside>
-
-        <!-- SAĞ ALAN: DETAYLI KONTROL MATRİSİ VE TAKVİM -->
-        <main class="flex-1 flex flex-col overflow-hidden bg-slate-50/50">
-            <div id="noProductSelected" class="flex-1 flex flex-col items-center justify-center text-center p-8">
-                <div class="w-16 h-16 bg-slate-100 text-slate-400 rounded-2xl flex items-center justify-center text-2xl mb-4 shadow-sm">
-                    <i class="fa-solid fa-arrow-left"></i>
-                </div>
-                <h3 class="text-base font-bold text-slate-700 mb-1">İşlem Yapılacak Ürünü Seçin</h3>
-                <p class="text-xs text-slate-500 max-w-sm">Sol menüden bir ürün seçerek gümrük tarihlerini, stok taleplerini ve operasyon aşamalarını yönetebilirsiniz.</p>
-            </div>
-
-            <div id="productDetailView" class="flex-1 flex flex-col overflow-hidden hidden">
-                <!-- Ürün Başlık ve İlerleme Özeti -->
-                <div class="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between flex-shrink-0">
-                    <div>
-                        <div class="flex items-center space-x-2 mb-1">
-                            <span id="detailProductSku" class="bg-brand-50 text-brand-700 text-xs font-bold px-2.5 py-0.5 rounded-md border border-brand-100">SKU</span>
-                            <span id="detailProductCat" class="text-xs font-medium text-slate-400">Kategori</span>
-                        </div>
-                        <h2 id="detailProductName" class="text-xl font-bold text-slate-900">Ürün Adı</h2>
+                <div class="flex items-center space-x-3 w-full sm:w-auto">
+                    <div class="relative flex-1 sm:w-72">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-xs"></i>
+                        <input type="text" id="homeSearchInput" oninput="filterHomeTable()" placeholder="Ürün adı veya kod ile ara..." class="w-full bg-white border border-slate-200 rounded-xl pl-9 pr-3 py-2 text-xs focus:outline-none focus:border-brand-500 transition shadow-sm">
                     </div>
-                    <div class="flex items-center space-x-6">
-                        <div class="text-right">
-                            <div class="text-xs text-slate-400 font-medium mb-1">Genel Tamamlanma</div>
-                            <div class="flex items-center space-x-3">
-                                <div class="w-32 bg-slate-100 h-2.5 rounded-full overflow-hidden">
-                                    <div id="detailProgressBar" class="bg-brand-500 h-full transition-all duration-300 rounded-full" style="width: 0%"></div>
-                                </div>
-                                <span id="detailProgressText" class="text-sm font-bold text-slate-700">%0</span>
+                    <span id="tableProductCount" class="bg-slate-200 text-slate-700 text-xs px-3 py-2 rounded-xl font-bold flex-shrink-0">0 Ürün</span>
+                </div>
+            </div>
+
+            <!-- Tablo Alanı -->
+            <div class="flex-1 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+                <div class="flex-1 overflow-auto custom-scrollbar">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-100/70 border-b border-slate-200 text-[11px] font-bold text-slate-600 uppercase tracking-wider sticky top-0 z-10">
+                                <th class="p-4">Ürün Kodu (SKU)</th>
+                                <th class="p-4">Ürün Adı</th>
+                                <th class="p-4">Kategori</th>
+                                <th class="p-4">Talep Edilen Stok</th>
+                                <th class="p-4">Gümrük Geçiş</th>
+                                <th class="p-4">Depoya Giriş</th>
+                                <th class="p-4">Tamamlanma</th>
+                                <th class="p-4 text-center">İşlem</th>
+                            </tr>
+                        </thead>
+                        <tbody id="productTableBody" class="divide-y divide-slate-100 text-xs">
+                            <!-- Dinamik Tablo Satırları -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. GÖRÜNÜM: TEKİL ÜRÜN DETAY EKRANI -->
+        <div id="productDetailView" class="flex-1 flex flex-col overflow-hidden bg-slate-50/50 hidden">
+            <!-- Ürün Başlık ve İlerleme Özeti -->
+            <div class="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between flex-shrink-0">
+                <div>
+                    <div class="flex items-center space-x-2 mb-1">
+                        <span id="detailProductSku" class="bg-brand-50 text-brand-700 text-xs font-bold px-2.5 py-0.5 rounded-md border border-brand-100">SKU</span>
+                        <span id="detailProductCat" class="text-xs font-medium text-slate-400">Kategori</span>
+                    </div>
+                    <h2 id="detailProductName" class="text-xl font-bold text-slate-900">Ürün Adı</h2>
+                </div>
+                <div class="flex items-center space-x-6">
+                    <div class="text-right">
+                        <div class="text-xs text-slate-400 font-medium mb-1">Genel Tamamlanma</div>
+                        <div class="flex items-center space-x-3">
+                            <div class="w-32 bg-slate-100 h-2.5 rounded-full overflow-hidden">
+                                <div id="detailProgressBar" class="bg-brand-500 h-full transition-all duration-300 rounded-full" style="width: 0%"></div>
                             </div>
+                            <span id="detailProgressText" class="text-sm font-bold text-slate-700">%0</span>
                         </div>
-                        <button onclick="deleteCurrentProduct()" class="text-slate-400 hover:text-red-500 p-2 rounded-xl hover:bg-red-50 transition text-sm border-l border-slate-200 pl-4" title="Ürünü Sil">
-                            <i class="fa-solid fa-trash-can"></i>
+                    </div>
+                    <button onclick="deleteCurrentProduct()" class="text-slate-400 hover:text-red-500 p-2 rounded-xl hover:bg-red-50 transition text-sm border-l border-slate-200 pl-4" title="Ürünü Sil">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Kaydırma Alanı -->
+            <div class="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-6">
+
+                <!-- LOJİSTİK & GÜMRÜK TAKVİMİ KARTI -->
+                <div class="bg-gradient-to-r from-slate-900 to-slate-800 rounded-2xl p-5 text-white shadow-lg space-y-4">
+                    <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+                        <div>
+                            <h3 class="text-xs font-bold uppercase tracking-wider text-brand-400 mb-1 flex items-center space-x-2">
+                                <i class="fa-solid fa-calendar-days"></i>
+                                <span>Lojistik & Gümrük Takvimi</span>
+                            </h3>
+                            <p class="text-xs text-slate-300">Gümrük geçiş tarihi, talep edilen stok miktarı ve kritik sevkiyat aşamaları.</p>
+                        </div>
+                        <button onclick="openLogisticsModal()" class="bg-brand-500 hover:bg-brand-600 text-white px-4 py-2 rounded-xl text-xs font-bold transition shadow flex items-center space-x-2">
+                            <i class="fa-solid fa-pen-to-square"></i>
+                            <span>Tarih & Stok Bilgilerini Güncelle</span>
                         </button>
                     </div>
-                </div>
 
-                <!-- Kaydırma Alanı -->
-                <div class="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-6">
-
-                    <!-- LOJİSTİK & GÜMRÜK TAKVİMİ KARTI -->
-                    <div class="bg-gradient-to-r from-slate-900 to-slate-800 rounded-2xl p-5 text-white shadow-lg space-y-4">
-                        <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
-                            <div>
-                                <h3 class="text-xs font-bold uppercase tracking-wider text-brand-400 mb-1 flex items-center space-x-2">
-                                    <i class="fa-solid fa-calendar-days"></i>
-                                    <span>Lojistik & Gümrük Takvimi</span>
-                                </h3>
-                                <p class="text-xs text-slate-300">Gümrük geçiş tarihi, talep edilen stok miktarı ve kritik sevkiyat aşamaları.</p>
-                            </div>
-                            <button onclick="openLogisticsModal()" class="bg-brand-500 hover:bg-brand-600 text-white px-4 py-2 rounded-xl text-xs font-bold transition shadow flex items-center space-x-2">
-                                <i class="fa-solid fa-pen-to-square"></i>
-                                <span>Tarih & Stok Bilgilerini Güncelle</span>
-                            </button>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-2">
+                        <div class="bg-slate-800/80 p-3.5 rounded-xl border border-slate-700">
+                            <div class="text-[10px] text-slate-400 font-semibold uppercase">Talep Edilen Stok</div>
+                            <div id="statStockQty" class="text-lg font-bold text-brand-400 mt-1">Belirtilmedi</div>
                         </div>
-
-                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-2">
-                            <div class="bg-slate-800/80 p-3.5 rounded-xl border border-slate-700">
-                                <div class="text-[10px] text-slate-400 font-semibold uppercase">Talep Edilen Stok</div>
-                                <div id="statStockQty" class="text-lg font-bold text-brand-400 mt-1">Belirtilmedi</div>
-                            </div>
-                            <div class="bg-slate-800/80 p-3.5 rounded-xl border border-slate-700">
-                                <div class="text-[10px] text-slate-400 font-semibold uppercase">Gümrükten Geçiş Tarihi</div>
-                                <div id="statCustomsDate" class="text-sm font-bold text-white mt-1">Girilmedi</div>
-                            </div>
-                            <div class="bg-slate-800/80 p-3.5 rounded-xl border border-slate-700">
-                                <div class="text-[10px] text-slate-400 font-semibold uppercase">Depoya Giriş Tarihi</div>
-                                <div id="statWarehouseDate" class="text-sm font-bold text-white mt-1">Girilmedi</div>
-                            </div>
-                            <div class="bg-slate-800/80 p-3.5 rounded-xl border border-slate-700">
-                                <div class="text-[10px] text-slate-400 font-semibold uppercase">Pazaryeri Canlı Tarihi</div>
-                                <div id="statLaunchDate" class="text-sm font-bold text-white mt-1">Girilmedi</div>
-                            </div>
+                        <div class="bg-slate-800/80 p-3.5 rounded-xl border border-slate-700">
+                            <div class="text-[10px] text-slate-400 font-semibold uppercase">Gümrükten Geçiş Tarihi</div>
+                            <div id="statCustomsDate" class="text-sm font-bold text-white mt-1">Girilmedi</div>
                         </div>
-
-                        <!-- OPERASYON / GECİKME NOTU ALANI -->
-                        <div class="pt-3 border-t border-slate-700">
-                            <div class="flex justify-between items-center mb-1.5">
-                                <label class="text-[11px] font-bold text-brand-400 uppercase tracking-wider flex items-center space-x-1.5">
-                                    <i class="fa-solid fa-note-sticky"></i>
-                                    <span>Operasyon / Gecikme Notu</span>
-                                </label>
-                                <span class="text-[10px] text-slate-400 italic">Otomatik Kaydedilir</span>
-                            </div>
-                            <textarea id="productNote" oninput="saveProductNote()" rows="2" placeholder="Not ekleyin..." class="w-full bg-slate-900/90 border border-slate-700 rounded-xl p-3 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-brand-500 transition resize-none"></textarea>
+                        <div class="bg-slate-800/80 p-3.5 rounded-xl border border-slate-700">
+                            <div class="text-[10px] text-slate-400 font-semibold uppercase">Depoya Giriş Tarihi</div>
+                            <div id="statWarehouseDate" class="text-sm font-bold text-white mt-1">Girilmedi</div>
+                        </div>
+                        <div class="bg-slate-800/80 p-3.5 rounded-xl border border-slate-700">
+                            <div class="text-[10px] text-slate-400 font-semibold uppercase">Pazaryeri Canlı Tarihi</div>
+                            <div id="statLaunchDate" class="text-sm font-bold text-white mt-1">Girilmedi</div>
                         </div>
                     </div>
 
-                    <!-- 1. BÖLÜM: ÜST ORTAK AKIŞ -->
-                    <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
-                        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center space-x-2">
-                                <i class="fa-solid fa-route text-brand-600"></i>
-                                <span>1. Genel Başlangıç ve Onay Adımları</span>
-                            </h3>
-                            <div class="flex items-center space-x-2">
-                                <!-- İçerik Maili Butonu -->
-                                <button onclick="copyContentEmailTemplate()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg transition flex items-center space-x-1.5 shadow-sm">
-                                    <i class="fa-solid fa-envelope text-[10px]"></i>
-                                    <span>İçerik Maili</span>
-                                </button>
-                                <!-- Stok Talep Maili Butonu -->
-                                <button onclick="copyStockEmailTemplate()" class="bg-amber-600 hover:bg-amber-700 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg transition flex items-center space-x-1.5 shadow-sm">
-                                    <i class="fa-solid fa-envelope-open-text text-[10px]"></i>
-                                    <span>Stok Talep Maili</span>
-                                </button>
-                            </div>
+                    <!-- OPERASYON / GECİKME NOTU ALANI -->
+                    <div class="pt-3 border-t border-slate-700">
+                        <div class="flex justify-between items-center mb-1.5">
+                            <label class="text-[11px] font-bold text-brand-400 uppercase tracking-wider flex items-center space-x-1.5">
+                                <i class="fa-solid fa-note-sticky"></i>
+                                <span>Operasyon / Gecikme Notu</span>
+                            </label>
+                            <span class="text-[10px] text-slate-400 italic">Otomatik Kaydedilir</span>
                         </div>
-                        <div id="topFlowContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                        <textarea id="productNote" oninput="saveProductNote()" rows="2" placeholder="Not ekleyin..." class="w-full bg-slate-900/90 border border-slate-700 rounded-xl p-3 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-brand-500 transition resize-none"></textarea>
+                    </div>
+                </div>
+
+                <!-- 1. BÖLÜM: ÜST ORTAK AKIŞ -->
+                <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center space-x-2">
+                            <i class="fa-solid fa-route text-brand-600"></i>
+                            <span>1. Genel Başlangıç ve Onay Adımları</span>
+                        </h3>
+                        <div class="flex items-center space-x-2">
+                            <!-- İçerik Maili Butonu -->
+                            <button onclick="copyContentEmailTemplate()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg transition flex items-center space-x-1.5 shadow-sm">
+                                <i class="fa-solid fa-envelope text-[10px]"></i>
+                                <span>İçerik Maili</span>
+                            </button>
+                            <!-- Stok Talep Maili Butonu -->
+                            <button onclick="copyStockEmailTemplate()" class="bg-amber-600 hover:bg-amber-700 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg transition flex items-center space-x-1.5 shadow-sm">
+                                <i class="fa-solid fa-envelope-open-text text-[10px]"></i>
+                                <span>Stok Talep Maili</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div id="topFlowContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                        <!-- Dinamik doldurulacak -->
+                    </div>
+                </div>
+
+                <!-- 2. BÖLÜM: İKİYE AYRILAN KOLLAR -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+                    <!-- SOL KOL: T-SOFT OPERASYONLARI -->
+                    <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex flex-col">
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4 flex items-center space-x-2">
+                            <i class="fa-solid fa-laptop-code text-indigo-600"></i>
+                            <span>2. T-Soft Operasyon Adımları</span>
+                        </h3>
+                        <div id="tsoftContainer" class="space-y-2.5 flex-1">
                             <!-- Dinamik doldurulacak -->
                         </div>
                     </div>
 
-                    <!-- 2. BÖLÜM: İKİYE AYRILAN KOLLAR -->
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-                        <!-- SOL KOL: T-SOFT OPERASYONLARI -->
-                        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex flex-col">
-                            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4 flex items-center space-x-2">
-                                <i class="fa-solid fa-laptop-code text-indigo-600"></i>
-                                <span>2. T-Soft Operasyon Adımları</span>
-                            </h3>
-                            <div id="tsoftContainer" class="space-y-2.5 flex-1">
-                                <!-- Dinamik doldurulacak -->
-                            </div>
-                        </div>
-
-                        <!-- SAĞ KOL: ENTEGRA & PAZARYERLERİ TAKİBİ -->
-                        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex flex-col">
-                            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4 flex items-center space-x-2">
-                                <i class="fa-solid fa-store text-amber-600"></i>
-                                <span>3. Entegra & Pazaryerleri Takibi</span>
-                            </h3>
-                            <div id="marketplacesContainer" class="space-y-3 flex-1">
-                                <!-- Dinamik doldurulacak -->
-                            </div>
-                        </div>
-
-                    </div>
-
-                    <!-- 3. BÖLÜM: GÖZ YORMAYAN KOMPAKT AKTİVİTE GÜNLÜĞÜ -->
-                    <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
-                        <div class="flex items-center justify-between mb-3">
-                            <h3 class="text-[11px] font-bold uppercase tracking-wider text-slate-400 flex items-center space-x-1.5">
-                                <i class="fa-solid fa-clock-rotate-left text-slate-500"></i>
-                                <span>Son İşlem Geçmişi (Aktivite Akışı)</span>
-                            </h3>
-                            <span class="text-[10px] text-slate-400">Son 5 Hareket</span>
-                        </div>
-                        <div id="activityLogContainer" class="space-y-1.5">
-                            <!-- Dinamik loglar -->
+                    <!-- SAĞ KOL: ENTEGRA & PAZARYERLERİ TAKİBİ -->
+                    <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex flex-col">
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4 flex items-center space-x-2">
+                            <i class="fa-solid fa-store text-amber-600"></i>
+                            <span>3. Entegra & Pazaryerleri Takibi</span>
+                        </h3>
+                        <div id="marketplacesContainer" class="space-y-3 flex-1">
+                            <!-- Dinamik doldurulacak -->
                         </div>
                     </div>
 
                 </div>
+
+                <!-- 3. BÖLÜM: GÖZ YORMAYAN KOMPAKT AKTİVİTE GÜNLÜĞÜ -->
+                <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-[11px] font-bold uppercase tracking-wider text-slate-400 flex items-center space-x-1.5">
+                            <i class="fa-solid fa-clock-rotate-left text-slate-500"></i>
+                            <span>Son İşlem Geçmişi (Aktivite Akışı)</span>
+                        </h3>
+                        <span class="text-[10px] text-slate-400">Son 5 Hareket</span>
+                    </div>
+                    <div id="activityLogContainer" class="space-y-1.5">
+                        <!-- Dinamik loglar -->
+                    </div>
+                </div>
+
             </div>
-        </main>
+        </div>
 
     </div>
 
@@ -366,7 +384,7 @@
         let currentProductId = null;
         let noteTimeout = null;
 
-        window.filterProducts = filterProducts;
+        window.filterHomeTable = filterHomeTable;
         window.openNewProductModal = openNewProductModal;
         window.closeNewProductModal = closeNewProductModal;
         window.handleProductSubmit = handleProductSubmit;
@@ -382,6 +400,7 @@
         window.toggleTsoft = toggleTsoft;
         window.toggleMarketplace = toggleMarketplace;
         window.selectProduct = selectProduct;
+        window.goHome = goHome;
 
         onSnapshot(collection(db, "products"), (snapshot) => {
             products = [];
@@ -389,17 +408,9 @@
                 products.push({ id: docSnap.id, ...docSnap.data() });
             });
 
-            if (products.length > 0 && (!currentProductId || !products.some(p => p.id === currentProductId))) {
-                currentProductId = products[0].id;
-            } else if (products.length === 0) {
-                currentProductId = null;
-            }
-
-            renderProductList(document.getElementById('searchInput').value);
+            renderHomeTable(document.getElementById('homeSearchInput').value);
             if (currentProductId) {
-                selectProduct(currentProductId);
-            } else {
-                toggleView();
+                renderProductDetails();
             }
         });
 
@@ -409,54 +420,57 @@
                 const now = new Date();
                 const timeStr = `${now.toLocaleDateString('tr-TR')} ${now.toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'})}`;
                 product.logs.unshift({ text: actionDesc, time: timeStr });
-                if (product.logs.length > 5) product.logs.pop(); // Sadece son 5 hareket
+                if (product.logs.length > 5) product.logs.pop();
             }
             await setDoc(doc(db, "products", product.id), product);
         }
 
-        function renderProductList(filter = "") {
-            const listContainer = document.getElementById('productList');
-            listContainer.innerHTML = "";
+        function renderHomeTable(filter = "") {
+            const tableBody = document.getElementById('productTableBody');
+            tableBody.innerHTML = "";
             
             const filtered = products.filter(p => 
                 p.name.toLowerCase().includes(filter.toLowerCase()) || 
                 p.sku.toLowerCase().includes(filter.toLowerCase())
             );
 
-            document.getElementById('productCountBadge').textContent = `${products.length} Ürün`;
+            document.getElementById('tableProductCount').textContent = `${products.length} Ürün`;
 
             if (filtered.length === 0) {
-                listContainer.innerHTML = `<div class="text-center py-8 text-xs text-slate-400">Ürün bulunamadı</div>`;
+                tableBody.innerHTML = `<tr><td colspan="8" class="text-center py-12 text-slate-400">Kayıtlı ürün bulunamadı.</td></tr>`;
                 return;
             }
 
             filtered.forEach(p => {
-                const isSelected = p.id === currentProductId;
                 const progress = calculateProgress(p);
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50/80 transition cursor-pointer border-b border-slate-100";
+                tr.onclick = () => selectProduct(p.id);
 
-                const card = document.createElement('div');
-                card.className = `p-3.5 rounded-2xl border transition cursor-pointer flex flex-col space-y-2.5 ${isSelected ? 'border-brand-500 bg-brand-50/40 shadow-sm' : 'border-slate-200 hover:border-slate-300 bg-white'}`;
-                card.onclick = () => selectProduct(p.id);
-
-                card.innerHTML = `
-                    <div class="flex justify-between items-start">
-                        <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200">${p.sku}</span>
-                        <span class="text-[11px] text-slate-400 font-medium truncate max-w-[120px]">${p.category}</span>
-                    </div>
-                    <div>
-                        <h4 class="text-xs font-bold text-slate-800 line-clamp-1">${p.name}</h4>
-                    </div>
-                    <div class="space-y-1 pt-1">
-                        <div class="flex justify-between items-center text-[10px]">
-                            <span class="text-slate-400 font-medium">Tamamlanma</span>
-                            <span class="font-bold text-slate-700">%${progress}</span>
+                tr.innerHTML = `
+                    <td class="p-4 font-bold text-slate-700">
+                        <span class="bg-slate-100 border border-slate-200 px-2.5 py-1 rounded-md text-[11px]">${p.sku}</span>
+                    </td>
+                    <td class="p-4 font-bold text-slate-900">${p.name}</td>
+                    <td class="p-4 text-slate-500">${p.category}</td>
+                    <td class="p-4 font-semibold text-brand-700">${p.logistics?.stockQty || "-"}</td>
+                    <td class="p-4 text-slate-600">${p.logistics?.customsDate ? formatDate(p.logistics.customsDate) : "<span class='text-slate-300'>Girilmedi</span>"}</td>
+                    <td class="p-4 text-slate-600">${p.logistics?.warehouseDate ? formatDate(p.logistics.warehouseDate) : "<span class='text-slate-300'>Girilmedi</span>"}</td>
+                    <td class="p-4">
+                        <div class="flex items-center space-x-2">
+                            <div class="w-24 bg-slate-100 h-2 rounded-full overflow-hidden">
+                                <div class="bg-brand-500 h-full rounded-full" style="width: ${progress}%"></div>
+                            </div>
+                            <span class="font-bold text-slate-700 text-[11px]">%${progress}</span>
                         </div>
-                        <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                            <div class="bg-brand-500 h-full rounded-full transition-all duration-300" style="width: ${progress}%"></div>
-                        </div>
-                    </div>
+                    </td>
+                    <td class="p-4 text-center">
+                        <button onclick="event.stopPropagation(); selectProduct('${p.id}')" class="bg-slate-900 hover:bg-brand-600 text-white px-3 py-1.5 rounded-lg text-[11px] font-bold transition shadow-sm">
+                            İncele <i class="fa-solid fa-arrow-right ml-1"></i>
+                        </button>
+                    </td>
                 `;
-                listContainer.appendChild(card);
+                tableBody.appendChild(tr);
             });
         }
 
@@ -473,21 +487,20 @@
 
         function selectProduct(id) {
             currentProductId = id;
-            renderProductList(document.getElementById('searchInput').value);
-            toggleView();
+            document.getElementById('homeView').classList.add('hidden');
+            document.getElementById('productDetailView').classList.remove('hidden');
+            document.getElementById('backToHomeBtn').classList.remove('hidden');
+            document.getElementById('backToHomeBtn').classList.add('flex');
             renderProductDetails();
         }
 
-        function toggleView() {
-            const noSel = document.getElementById('noProductSelected');
-            const detail = document.getElementById('productDetailView');
-            if (currentProductId) {
-                noSel.classList.add('hidden');
-                detail.classList.remove('hidden');
-            } else {
-                noSel.classList.remove('hidden');
-                detail.classList.add('hidden');
-            }
+        function goHome() {
+            currentProductId = null;
+            document.getElementById('productDetailView').classList.add('hidden');
+            document.getElementById('homeView').classList.remove('hidden');
+            document.getElementById('backToHomeBtn').classList.remove('flex');
+            document.getElementById('backToHomeBtn').classList.add('hidden');
+            renderHomeTable(document.getElementById('homeSearchInput').value);
         }
 
         function renderProductDetails() {
@@ -641,9 +654,9 @@
             }, 800);
         }
 
-        function filterProducts() {
-            const query = document.getElementById('searchInput').value;
-            renderProductList(query);
+        function filterHomeTable() {
+            const query = document.getElementById('homeSearchInput').value;
+            renderHomeTable(query);
         }
 
         function openNewProductModal() {
@@ -676,7 +689,7 @@
 
             saveProductToFirestore(newProduct);
             closeNewProductModal();
-            currentProductId = newProduct.id;
+            selectProduct(newProduct.id);
         }
 
         function openLogisticsModal() {
@@ -714,16 +727,12 @@
         async function deleteCurrentProduct() {
             if (!confirm("Bu ürünü silmek istediğinize emin misiniz?")) return;
             await deleteDoc(doc(db, "products", currentProductId));
-            currentProductId = products.length > 0 ? products[0].id : null;
+            goHome();
         }
 
-        // 1. İçerik Talep Maili Kopyalama
         function copyContentEmailTemplate() {
             const p = products.find(x => x.id === currentProductId);
-            if (!p) {
-                alert("Lütfen önce bir ürün seçin!");
-                return;
-            }
+            if (!p) return;
 
             const text = `Halil Bey merhaba,\n\nYeni ürünümüz olan ${p.name} web sitemizde satışa açacağız.\n\nBu ürünlerin ürün kartlarında kullanılacak içeriklere dair taleplerimizi ekte iletiyorum.\n\nİçeriklerin hazırlanması ile ilgili desteğinizi rica ederim.\n\nİyi çalışmalar,`;
 
@@ -732,13 +741,9 @@
             });
         }
 
-        // 2. Stok Talep Maili Kopyalama (Tablo Formatında)
         function copyStockEmailTemplate() {
             const p = products.find(x => x.id === currentProductId);
-            if (!p) {
-                alert("Lütfen önce bir ürün seçin!");
-                return;
-            }
+            if (!p) return;
 
             const stockQty = p.logistics?.stockQty || "Belirtilmedi";
             const text = `Emre Bey merhaba,\n\nAşağıdaki stokların f029 deposuna virman yapılmasını rica ederim.\n\nSKU: ${p.sku}\tÜrün Adı: ${p.name}\tTalep Adedi: ${stockQty}\n\nİyi çalışmalar,`;

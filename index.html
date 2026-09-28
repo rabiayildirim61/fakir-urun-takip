@@ -196,7 +196,6 @@
 
     <!-- JAVASCRIPT MANTIĞI -->
     <script>
-        // Ağaç Veri Şablonları
         const topFlowSteps = [
             "Yeni Ürün Bilgisi Geldi",
             "Fiyat İstendi",
@@ -230,7 +229,6 @@
             { name: "Pazarama", icon: "fa-cart-shopping", color: "text-purple-600" }
         ];
 
-        // Veri Saklama
         let products = JSON.parse(localStorage.getItem('fakir_ecommerce_products')) || [
             {
                 id: "1",
@@ -267,7 +265,7 @@
                 p.sku.toLowerCase().includes(filter.toLowerCase())
             );
 
-            document.getElementById('productCountBadge.innerHTML`').textContent = `${products.length} Ürün`;
+            document.getElementById('productCountBadge').textContent = `${products.length} Ürün`;
 
             if (filtered.length === 0) {
                 listContainer.innerHTML = `<div class="text-center py-8 text-xs text-slate-400">Ürün bulunamadı</div>`;
@@ -346,7 +344,6 @@
             document.getElementById('detailProgressBar').style.width = `${progress}%`;
             document.getElementById('detailProgressText').textContent = `%${progress}`;
 
-            // 1. Üst Akış Render
             const topContainer = document.getElementById('topFlowContainer');
             topContainer.innerHTML = "";
             topFlowSteps.forEach((step, idx) => {
@@ -360,7 +357,6 @@
                 topContainer.appendChild(el);
             });
 
-            // 2. T-Soft Render
             const tsoftContainer = document.getElementById('tsoftContainer');
             tsoftContainer.innerHTML = "";
             tsoftSteps.forEach((step, idx) => {
@@ -374,7 +370,6 @@
                 tsoftContainer.appendChild(el);
             });
 
-            // 3. Pazaryerleri Render
             const marketContainer = document.getElementById('marketplacesContainer');
             marketContainer.innerHTML = "";
             marketplaces.forEach((m, idx) => {

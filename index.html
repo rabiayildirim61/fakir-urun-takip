@@ -126,7 +126,7 @@
                 <div class="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-6">
 
                     <!-- LOJİSTİK & GÜMRÜK TAKVİMİ KARTI -->
-                    <div class="bg-gradient-to-r from-slate-900 to-slate-800 rounded-2xl p-5 text-white shadow-lg">
+                    <div class="bg-gradient-to-r from-slate-900 to-slate-800 rounded-2xl p-5 text-white shadow-lg space-y-4">
                         <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
                             <div>
                                 <h3 class="text-xs font-bold uppercase tracking-wider text-brand-400 mb-1 flex items-center space-x-2">
@@ -141,7 +141,7 @@
                             </button>
                         </div>
 
-                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-5 pt-4 border-t border-slate-700">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-2">
                             <div class="bg-slate-800/80 p-3.5 rounded-xl border border-slate-700">
                                 <div class="text-[10px] text-slate-400 font-semibold uppercase">Talep Edilen Stok</div>
                                 <div id="statStockQty" class="text-lg font-bold text-brand-400 mt-1">Belirtilmedi</div>
@@ -158,6 +158,18 @@
                                 <div class="text-[10px] text-slate-400 font-semibold uppercase">Pazaryeri Canlı Tarihi</div>
                                 <div id="statLaunchDate" class="text-sm font-bold text-white mt-1">Girilmedi</div>
                             </div>
+                        </div>
+
+                        <!-- OPERASYON / GECİKME NOTU ALANI -->
+                        <div class="pt-3 border-t border-slate-700">
+                            <div class="flex justify-between items-center mb-1.5">
+                                <label class="text-[11px] font-bold text-brand-400 uppercase tracking-wider flex items-center space-x-1.5">
+                                    <i class="fa-solid fa-note-sticky"></i>
+                                    <span>Operasyon / Gecikme Notu (Depoya gelmesine rağmen canlıya alınmama nedeni vb.)</span>
+                                </label>
+                                <span class="text-[10px] text-slate-400 italic">Otomatik Kaydedilir</span>
+                            </div>
+                            <textarea id="productNote" oninput="saveProductNote()" rows="2" placeholder="Örn: Görsel eksikliği nedeniyle pazaryeri onayında bekliyor..." class="w-full bg-slate-900/90 border border-slate-700 rounded-xl p-3 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-brand-500 transition resize-none"></textarea>
                         </div>
                     </div>
 
@@ -324,6 +336,7 @@
 
         let products = [];
         let currentProductId = null;
+        let noteTimeout = null;
 
         window.filterProducts = filterProducts;
         window.openNewProductModal = openNewProductModal;
@@ -332,6 +345,7 @@
         window.openLogisticsModal = openLogisticsModal;
         window.closeLogisticsModal = closeLogisticsModal;
         window.handleLogisticsSubmit = handleLogisticsSubmit;
+        window.saveProductNote = saveProductNote;
         window.deleteCurrentProduct = deleteCurrentProduct;
         window.exportToExcel = exportToExcel;
         window.toggleTopFlow = toggleTopFlow;
@@ -447,11 +461,16 @@
             document.getElementById('detailProductSku').textContent = p.sku;
             document.getElementById('detailProductCat').textContent = p.category;
 
-            // Lojistik ve Takvim Bilgileri
+            // Lojistik, Takvim ve Not Bilgileri
             document.getElementById('statStockQty').textContent = p.logistics?.stockQty || "Belirtilmedi";
             document.getElementById('statCustomsDate').textContent = p.logistics?.customsDate ? formatDate(p.logistics.customsDate) : "Girilmedi";
             document.getElementById('statWarehouseDate').textContent = p.logistics?.warehouseDate ? formatDate(p.logistics.warehouseDate) : "Girilmedi";
             document.getElementById('statLaunchDate').textContent = p.logistics?.launchDate ? formatDate(p.logistics.launchDate) : "Girilmedi";
+            
+            const noteEl = document.getElementById('productNote');
+            if (document.activeElement !== noteEl) {
+                noteEl.value = p.logistics?.note || "";
+            }
 
             const progress = calculateProgress(p);
             document.getElementById('detailProgressBar').style.width = `${progress}%`;
@@ -551,6 +570,21 @@
             saveProductToFirestore(p);
         }
 
+        function saveProductNote() {
+            const p = products.find(x => x.id === currentProductId);
+            if (!p) return;
+            const noteText = document.getElementById('productNote').value;
+            
+            if (!p.logistics) p.logistics = {};
+            p.logistics.note = noteText;
+
+            // Yazarken sürekli istek atmaması için 500ms gecikmeli kaydediyoruz
+            clearTimeout(noteTimeout);
+            noteTimeout = setTimeout(() => {
+                saveProductToFirestore(p);
+            }, 500);
+        }
+
         function filterProducts() {
             const query = document.getElementById('searchInput').value;
             renderProductList(query);
@@ -579,7 +613,7 @@
                 topFlow: {},
                 tsoft: {},
                 marketplaces: {},
-                logistics: { stockQty: "", customsDate: "", warehouseDate: "", launchDate: "" }
+                logistics: { stockQty: "", customsDate: "", warehouseDate: "", launchDate: "", note: "" }
             };
 
             saveProductToFirestore(newProduct);
@@ -608,12 +642,11 @@
             const p = products.find(x => x.id === currentProductId);
             if (!p) return;
 
-            p.logistics = {
-                stockQty: document.getElementById('logStockQty').value,
-                customsDate: document.getElementById('logCustomsDate').value,
-                warehouseDate: document.getElementById('logWarehouseDate').value,
-                launchDate: document.getElementById('logLaunchDate').value
-            };
+            if (!p.logistics) p.logistics = {};
+            p.logistics.stockQty = document.getElementById('logStockQty').value;
+            p.logistics.customsDate = document.getElementById('logCustomsDate').value;
+            p.logistics.warehouseDate = document.getElementById('logWarehouseDate').value;
+            p.logistics.launchDate = document.getElementById('logLaunchDate').value;
 
             await saveProductToFirestore(p);
             closeLogisticsModal();
@@ -634,7 +667,7 @@
 
             let csvContent = "\uFEFF"; 
 
-            let headers = ["Ürün Adı", "Ürün Kodu", "Kategori", "Talep Edilen Stok", "Gümrükten Geçiş", "Depoya Giriş", "Pazaryeri Canlı", "Genel Tamamlanma"];
+            let headers = ["Ürün Adı", "Ürün Kodu", "Kategori", "Talep Edilen Stok", "Gümrükten Geçiş", "Depoya Giriş", "Pazaryeri Canlı", "Operasyon / Gecikme Notu", "Genel Tamamlanma"];
             topFlowSteps.forEach(s => headers.push(s));
             tsoftSteps.forEach(s => headers.push(s.name));
             marketplaces.forEach(m => headers.push(`${m.name} Açıldı mı?`));
@@ -651,6 +684,7 @@
                     `"${p.logistics?.customsDate || ""}"`,
                     `"${p.logistics?.warehouseDate || ""}"`,
                     `"${p.logistics?.launchDate || ""}"`,
+                    `"${(p.logistics?.note || "").replace(/"/g, '""')}"`,
                     `"%${progress}"`
                 ];
 

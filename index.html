@@ -102,7 +102,12 @@
                         <h2 id="detailProductName" class="text-xl font-bold text-slate-900">Ürün Adı</h2>
                     </div>
                     <div class="flex items-center space-x-6">
-                        <div class="text-right">
+                        <!-- Rapor Paylaş Butonu -->
+                        <button onclick="copyProductReport()" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-2 shadow-sm" title="Raporu Kopyala">
+                            <i class="fa-solid fa-share-nodes"></i>
+                            <span id="copyButtonText">Raporu Kopyala</span>
+                        </button>
+                        <div class="text-right border-l border-slate-200 pl-6">
                             <div class="text-xs text-slate-400 font-medium mb-1">Genel Tamamlanma</div>
                             <div class="flex items-center space-x-3">
                                 <div class="w-32 bg-slate-100 h-2.5 rounded-full overflow-hidden">
@@ -111,7 +116,7 @@
                                 <span id="detailProgressText" class="text-sm font-bold text-slate-700">%0</span>
                             </div>
                         </div>
-                        <button onclick="deleteCurrentProduct()" class="text-slate-400 hover:text-red-500 p-2 rounded-xl hover:bg-red-50 transition text-sm" title="Ürünü Sil">
+                        <button onclick="deleteCurrentProduct()" class="text-slate-400 hover:text-red-500 p-2 rounded-xl hover:bg-red-50 transition text-sm border-l border-slate-200 pl-4" title="Ürünü Sil">
                             <i class="fa-solid fa-trash-can"></i>
                         </button>
                     </div>
@@ -405,6 +410,46 @@
                     <input type="checkbox" ${checked ? 'checked' : ''} onchange="toggleMarketplace(${idx})" class="w-4 h-4 text-amber-600 rounded border-slate-300 focus:ring-amber-500">
                 `;
                 marketContainer.appendChild(el);
+            });
+        }
+
+        function copyProductReport() {
+            const p = products.find(x => x.id === currentProductId);
+            if (!p) return;
+
+            const progress = calculateProgress(p);
+
+            let report = `📦 *Ürün Operasyon Raporu*\n`;
+            report += `──────────────────\n`;
+            report += `📌 *Ürün:* ${p.name}\n`;
+            report += `🏷️ *SKU:* ${p.sku}\n`;
+            report += `📁 *Kategori:* ${p.category}\n`;
+            report += `📊 *Genel İlerleme:* %${progress}\n\n`;
+
+            report += `🚀 *1. Genel Adımlar:*\n`;
+            topFlowSteps.forEach((step, idx) => {
+                const status = p.topFlow && p.topFlow[idx] ? "✅" : "⏳";
+                report += `${status} ${step}\n`;
+            });
+
+            report += `\n💻 *2. T-Soft Operasyonları:*\n`;
+            tsoftSteps.forEach((stepObj, idx) => {
+                const status = p.tsoft && p.tsoft[idx] ? "✅" : "⏳";
+                report += `${status} ${stepObj.name}\n`;
+            });
+
+            report += `\n🛒 *3. Pazaryerleri:*\n`;
+            marketplaces.forEach((m, idx) => {
+                const status = p.marketplaces && p.marketplaces[idx] ? "✅" : "⏳";
+                report += `${status} ${m.name}\n`;
+            });
+
+            navigator.clipboard.writeText(report).then(() => {
+                const btnText = document.getElementById('copyButtonText');
+                btnText.textContent = "Kopyalandı! ✓";
+                setTimeout(() => {
+                    btnText.textContent = "Raporu Kopyala";
+                }, 2000);
             });
         }
 

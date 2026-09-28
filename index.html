@@ -28,7 +28,7 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar { width: 5px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
@@ -47,21 +47,21 @@
                 <p class="text-xs text-slate-400">Canlı Ortak Çalışma & Lojistik Takvimi</p>
             </div>
         </div>
-        <div class="flex items-center space-x-4">
+        <div class="flex items-center space-x-3">
             <!-- Excel Export Butonu -->
-            <button onclick="exportToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-sm font-semibold transition shadow-sm flex items-center space-x-2">
+            <button onclick="exportToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-xl text-xs font-semibold transition shadow-sm flex items-center space-x-2">
                 <i class="fa-solid fa-file-excel"></i>
                 <span>Excel'e Aktar</span>
             </button>
-            <button onclick="openNewProductModal()" class="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-xl text-sm font-semibold transition shadow-sm flex items-center space-x-2">
+            <button onclick="openNewProductModal()" class="bg-brand-600 hover:bg-brand-700 text-white px-3.5 py-2 rounded-xl text-xs font-semibold transition shadow-sm flex items-center space-x-2">
                 <i class="fa-solid fa-plus"></i>
-                <span>Yeni Ürün Ekle</span>
+                <span>Yeni Ürün</span>
             </button>
-            <div class="flex items-center space-x-2 border-l border-slate-700 pl-4">
-                <div class="w-9 h-9 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-brand-400 font-bold text-sm shadow-inner">
+            <div class="flex items-center space-x-2 border-l border-slate-700 pl-3">
+                <div class="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-brand-400 font-bold text-sm shadow-inner">
                     61
                 </div>
-                <span class="text-sm font-medium text-slate-200">Operasyon Ekibi</span>
+                <span class="text-xs font-medium text-slate-200 hidden sm:inline">Ekip</span>
             </div>
         </div>
     </header>
@@ -175,10 +175,17 @@
 
                     <!-- 1. BÖLÜM: ÜST ORTAK AKIŞ -->
                     <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
-                        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4 flex items-center space-x-2">
-                            <i class="fa-solid fa-route text-brand-600"></i>
-                            <span>1. Genel Başlangıç ve Onay Adımları</span>
-                        </h3>
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center space-x-2">
+                                <i class="fa-solid fa-route text-brand-600"></i>
+                                <span>1. Genel Başlangıç ve Onay Adımları</span>
+                            </h3>
+                            <!-- Mail Taslağı Butonu (Pazarlamadan İçerik Talep Edildi adımı için) -->
+                            <button onclick="copyEmailTemplate()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg transition flex items-center space-x-1.5 shadow-sm">
+                                <i class="fa-solid fa-envelope text-[10px]"></i>
+                                <span>İçerik Talep Maili Kopyala</span>
+                            </button>
+                        </div>
                         <div id="topFlowContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                             <!-- Dinamik doldurulacak -->
                         </div>
@@ -209,6 +216,20 @@
                             </div>
                         </div>
 
+                    </div>
+
+                    <!-- 3. BÖLÜM: GÖZ YORMAYAN KOMPAKT AKTİVİTE GÜNLÜĞÜ -->
+                    <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="text-[11px] font-bold uppercase tracking-wider text-slate-400 flex items-center space-x-1.5">
+                                <i class="fa-solid fa-clock-rotate-left text-slate-500"></i>
+                                <span>Son İşlem Geçmişi (Aktivite Akışı)</span>
+                            </h3>
+                            <span class="text-[10px] text-slate-400">Son 5 Hareket</span>
+                        </div>
+                        <div id="activityLogContainer" class="space-y-1.5">
+                            <!-- Dinamik loglar -->
+                        </div>
                     </div>
 
                 </div>
@@ -348,6 +369,7 @@
         window.saveProductNote = saveProductNote;
         window.deleteCurrentProduct = deleteCurrentProduct;
         window.exportToExcel = exportToExcel;
+        window.copyEmailTemplate = copyEmailTemplate;
         window.toggleTopFlow = toggleTopFlow;
         window.toggleTsoft = toggleTsoft;
         window.toggleMarketplace = toggleMarketplace;
@@ -373,7 +395,14 @@
             }
         });
 
-        async function saveProductToFirestore(product) {
+        async function saveProductToFirestore(product, actionDesc = "") {
+            if (actionDesc) {
+                if (!product.logs) product.logs = [];
+                const now = new Date();
+                const timeStr = `${now.toLocaleDateString('tr-TR')} ${now.toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'})}`;
+                product.logs.unshift({ text: actionDesc, time: timeStr });
+                if (product.logs.length > 5) product.logs.pop(); // Sadece son 5 hareketi tut (Göz yormaması için)
+            }
             await setDoc(doc(db, "products", product.id), product);
         }
 
@@ -538,6 +567,23 @@
                 `;
                 marketContainer.appendChild(el);
             });
+
+            // Göz yormayan kompakt aktivite akışı (Son 5 hareket)
+            const logContainer = document.getElementById('activityLogContainer');
+            logContainer.innerHTML = "";
+            if (!p.logs || p.logs.length === 0) {
+                logContainer.innerHTML = `<div class="text-[11px] text-slate-400 italic py-1">Henüz bir işlem kaydedilmedi.</div>`;
+            } else {
+                p.logs.forEach(log => {
+                    const logItem = document.createElement('div');
+                    logItem.className = "flex items-center justify-between text-[11px] bg-slate-50 border border-slate-100 px-3 py-2 rounded-xl text-slate-600";
+                    logItem.innerHTML = `
+                        <span class="font-medium">${log.text}</span>
+                        <span class="text-[10px] text-slate-400">${log.time}</span>
+                    `;
+                    logContainer.appendChild(logItem);
+                });
+            }
         }
 
         function formatDate(dateStr) {
@@ -551,7 +597,8 @@
             if (!p) return;
             if (!p.topFlow) p.topFlow = {};
             p.topFlow[idx] = !p.topFlow[idx];
-            saveProductToFirestore(p);
+            const action = p.topFlow[idx] ? `"${topFlowSteps[idx]}" tamamlandı` : `"${topFlowSteps[idx]}" işareti kaldırıldı`;
+            saveProductToFirestore(p, action);
         }
 
         function toggleTsoft(idx) {
@@ -559,7 +606,8 @@
             if (!p) return;
             if (!p.tsoft) p.tsoft = {};
             p.tsoft[idx] = !p.tsoft[idx];
-            saveProductToFirestore(p);
+            const action = p.tsoft[idx] ? `[T-Soft] "${tsoftSteps[idx].name}" yapıldı` : `[T-Soft] "${tsoftSteps[idx].name}" geri alındı`;
+            saveProductToFirestore(p, action);
         }
 
         function toggleMarketplace(idx) {
@@ -567,7 +615,8 @@
             if (!p) return;
             if (!p.marketplaces) p.marketplaces = {};
             p.marketplaces[idx] = !p.marketplaces[idx];
-            saveProductToFirestore(p);
+            const action = p.marketplaces[idx] ? `[Pazaryeri] ${marketplaces[idx].name} açıldı` : `[Pazaryeri] ${marketplaces[idx].name} kapatıldı`;
+            saveProductToFirestore(p, action);
         }
 
         function saveProductNote() {
@@ -580,8 +629,8 @@
 
             clearTimeout(noteTimeout);
             noteTimeout = setTimeout(() => {
-                saveProductToFirestore(p);
-            }, 500);
+                saveProductToFirestore(p, "Operasyon notu güncellendi");
+            }, 800);
         }
 
         function filterProducts() {
@@ -604,6 +653,7 @@
             const sku = document.getElementById('modalSku').value;
             const category = document.getElementById('modalCategory').value;
 
+            const nowStr = `${new Date().toLocaleDateString('tr-TR')} ${new Date().toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'})}`;
             const newProduct = {
                 id: 'prod_' + Date.now(),
                 name,
@@ -612,7 +662,8 @@
                 topFlow: {},
                 tsoft: {},
                 marketplaces: {},
-                logistics: { stockQty: "", customsDate: "", warehouseDate: "", launchDate: "", note: "" }
+                logistics: { stockQty: "", customsDate: "", warehouseDate: "", launchDate: "", note: "" },
+                logs: [{ text: "Ürün sisteme eklendi", time: nowStr }]
             };
 
             saveProductToFirestore(newProduct);
@@ -647,7 +698,7 @@
             p.logistics.warehouseDate = document.getElementById('logWarehouseDate').value;
             p.logistics.launchDate = document.getElementById('logLaunchDate').value;
 
-            await saveProductToFirestore(p);
+            await saveProductToFirestore(p, "Lojistik & takvim güncellendi");
             closeLogisticsModal();
             renderProductDetails();
         }
@@ -656,6 +707,20 @@
             if (!confirm("Bu ürünü silmek istediğinize emin misiniz?")) return;
             await deleteDoc(doc(db, "products", currentProductId));
             currentProductId = products.length > 0 ? products[0].id : null;
+        }
+
+        function copyEmailTemplate() {
+            const p = products.find(x => x.id === currentProductId);
+            if (!p) {
+                alert("Lütfen önce bir ürün seçin!");
+                return;
+            }
+
+            const text = `Halil Bey merhaba,\n\nYeni ürünümüz olan ${p.name} web sitemizde satışa açacağız.\n\nBu ürünlerin ürün kartlarında kullanılacak içeriklere dair taleplerimizi ekte iletiyorum.\n\nİçeriklerin hazırlanması ile ilgili desteğinizi rica ederim.\n\nİyi çalışmalar,`;
+
+            navigator.clipboard.writeText(text).then(() => {
+                alert("İçerik talep maili taslağı panoya kopyalandı!");
+            });
         }
 
         function exportToExcel() {

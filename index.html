@@ -44,7 +44,7 @@
             </div>
             <div>
                 <h1 class="text-lg font-bold tracking-tight">E-Ticaret Operasyon ve Koordinasyon Paneli</h1>
-                <p class="text-xs text-slate-400">Ürün Açılış ve Pazaryeri Entegrasyon Takibi</p>
+                <p class="text-xs text-slate-400">Canlı Ortak Çalışma Paneli (Cloud Sync)</p>
             </div>
         </div>
         <div class="flex items-center space-x-4">
@@ -199,8 +199,24 @@
         </div>
     </div>
 
-    <!-- JAVASCRIPT MANTIĞI -->
-    <script>
+    <!-- FIREBASE VE UYGULAMA MANTIĞI -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+        import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBFMgKub8q5NzBaay4PVFq1M8nnq5Obno0",
+            authDomain: "fakir-ecommerce-panel.firebaseapp.com",
+            projectId: "fakir-ecommerce-panel",
+            storageBucket: "fakir-ecommerce-panel.firebasestorage.app",
+            messagingSenderId: "704123122573",
+            appId: "1:704123122573:web:2b14f47b1bbff7382bc3c4",
+            measurementId: "G-2MQ33R7DX4"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
         const topFlowSteps = [
             "Yeni Ürün Bilgisi Geldi",
             "Fiyat İstendi",
@@ -234,31 +250,44 @@
             { name: "Pazarama", icon: "fa-cart-shopping", color: "text-purple-600" }
         ];
 
-        let products = JSON.parse(localStorage.getItem('fakir_ecommerce_products')) || [
-            {
-                id: "1",
-                name: "61 Hobi Vion Core V-100",
-                sku: "61-VION-100",
-                category: "Hobi ve Eğlence",
-                topFlow: {},
-                tsoft: {},
-                marketplaces: {}
+        let products = [];
+        let currentProductId = null;
+
+        // Global fonksiyonları window nesnesine bağlıyoruz
+        window.filterProducts = filterProducts;
+        window.openNewProductModal = openNewProductModal;
+        window.closeNewProductModal = closeNewProductModal;
+        window.handleProductSubmit = handleProductSubmit;
+        window.deleteCurrentProduct = deleteCurrentProduct;
+        window.exportToExcel = exportToExcel;
+        window.toggleTopFlow = toggleTopFlow;
+        window.toggleTsoft = toggleTsoft;
+        window.toggleMarketplace = toggleMarketplace;
+        window.selectProduct = selectProduct;
+
+        // Firestore Canlı Dinleyici (Realtime Sync)
+        onSnapshot(collection(db, "products"), (snapshot) => {
+            products = [];
+            snapshot.forEach((docSnap) => {
+                products.push({ id: docSnap.id, ...docSnap.data() });
+            });
+
+            if (products.length > 0 && (!currentProductId || !products.some(p => p.id === currentProductId))) {
+                currentProductId = products[0].id;
+            } else if (products.length === 0) {
+                currentProductId = null;
             }
-        ];
 
-        let currentProductId = products.length > 0 ? products[0].id : null;
-
-        function saveToLocalStorage() {
-            localStorage.setItem('fakir_ecommerce_products', JSON.stringify(products));
-        }
-
-        function initApp() {
-            renderProductList();
+            renderProductList(document.getElementById('searchInput').value);
             if (currentProductId) {
                 selectProduct(currentProductId);
             } else {
                 toggleView();
             }
+        });
+
+        async function saveProductToFirestore(product) {
+            await setDoc(doc(db, "products", product.id), product);
         }
 
         function renderProductList(filter = "") {
@@ -413,15 +442,79 @@
             });
         }
 
+        function toggleTopFlow(idx) {
+            const p = products.find(x => x.id === currentProductId);
+            if (!p) return;
+            if (!p.topFlow) p.topFlow = {};
+            p.topFlow[idx] = !p.topFlow[idx];
+            saveProductToFirestore(p);
+        }
+
+        function toggleTsoft(idx) {
+            const p = products.find(x => x.id === currentProductId);
+            if (!p) return;
+            if (!p.tsoft) p.tsoft = {};
+            p.tsoft[idx] = !p.tsoft[idx];
+            saveProductToFirestore(p);
+        }
+
+        function toggleMarketplace(idx) {
+            const p = products.find(x => x.id === currentProductId);
+            if (!p) return;
+            if (!p.marketplaces) p.marketplaces = {};
+            p.marketplaces[idx] = !p.marketplaces[idx];
+            saveProductToFirestore(p);
+        }
+
+        function filterProducts() {
+            const query = document.getElementById('searchInput').value;
+            renderProductList(query);
+        }
+
+        function openNewProductModal() {
+            document.getElementById('productModal').classList.remove('hidden');
+        }
+
+        function closeNewProductModal() {
+            document.getElementById('productModal').classList.add('hidden');
+            document.getElementById('productForm').reset();
+        }
+
+        function handleProductSubmit(e) {
+            e.preventDefault();
+            const name = document.getElementById('modalName').value;
+            const sku = document.getElementById('modalSku').value;
+            const category = document.getElementById('modalCategory').value;
+
+            const newProduct = {
+                id: 'prod_' + Date.now(),
+                name,
+                sku,
+                category,
+                topFlow: {},
+                tsoft: {},
+                marketplaces: {}
+            };
+
+            saveProductToFirestore(newProduct);
+            closeNewProductModal();
+            currentProductId = newProduct.id;
+        }
+
+        async function deleteCurrentProduct() {
+            if (!confirm("Bu ürünü silmek istediğinize emin misiniz?")) return;
+            await deleteDoc(doc(db, "products", currentProductId));
+            currentProductId = products.length > 0 ? products[0].id : null;
+        }
+
         function exportToExcel() {
             if (products.length === 0) {
                 alert("Dışa aktarılacak ürün bulunmuyor!");
                 return;
             }
 
-            let csvContent = "\uFEFF"; // Türkçe karakter desteği için BOM
+            let csvContent = "\uFEFF"; 
 
-            // Başlık satırı
             let headers = ["Ürün Adı", "Ürün Kodu", "Kategori", "Genel Tamamlanma"];
             topFlowSteps.forEach(s => headers.push(s));
             tsoftSteps.forEach(s => headers.push(s.name));
@@ -429,7 +522,6 @@
 
             csvContent += headers.join(";") + "\n";
 
-            // Veri satırları
             products.forEach(p => {
                 const progress = calculateProgress(p);
                 let row = [
@@ -463,82 +555,6 @@
             link.click();
             document.body.removeChild(link);
         }
-
-        function toggleTopFlow(idx) {
-            const p = products.find(x => x.id === currentProductId);
-            if (!p) return;
-            if (!p.topFlow) p.topFlow = {};
-            p.topFlow[idx] = !p.topFlow[idx];
-            saveToLocalStorage();
-            renderProductList(document.getElementById('searchInput').value);
-            renderProductDetails();
-        }
-
-        function toggleTsoft(idx) {
-            const p = products.find(x => x.id === currentProductId);
-            if (!p) return;
-            if (!p.tsoft) p.tsoft = {};
-            p.tsoft[idx] = !p.tsoft[idx];
-            saveToLocalStorage();
-            renderProductList(document.getElementById('searchInput').value);
-            renderProductDetails();
-        }
-
-        function toggleMarketplace(idx) {
-            const p = products.find(x => x.id === currentProductId);
-            if (!p) return;
-            if (!p.marketplaces) p.marketplaces = {};
-            p.marketplaces[idx] = !p.marketplaces[idx];
-            saveToLocalStorage();
-            renderProductList(document.getElementById('searchInput').value);
-            renderProductDetails();
-        }
-
-        function filterProducts() {
-            const query = document.getElementById('searchInput').value;
-            renderProductList(query);
-        }
-
-        function openNewProductModal() {
-            document.getElementById('productModal').classList.remove('hidden');
-        }
-
-        function closeNewProductModal() {
-            document.getElementById('productModal').classList.add('hidden');
-            document.getElementById('productForm').reset();
-        }
-
-        function handleProductSubmit(e) {
-            e.preventDefault();
-            const name = document.getElementById('modalName').value;
-            const sku = document.getElementById('modalSku').value;
-            const category = document.getElementById('modalCategory').value;
-
-            const newProduct = {
-                id: Date.now().toString(),
-                name,
-                sku,
-                category,
-                topFlow: {},
-                tsoft: {},
-                marketplaces: {}
-            };
-
-            products.unshift(newProduct);
-            saveToLocalStorage();
-            closeNewProductModal();
-            selectProduct(newProduct.id);
-        }
-
-        function deleteCurrentProduct() {
-            if (!confirm("Bu ürünü silmek istediğinize emin misiniz?")) return;
-            products = products.filter(x => x.id !== currentProductId);
-            saveToLocalStorage();
-            currentProductId = products.length > 0 ? products[0].id : null;
-            initApp();
-        }
-
-        window.onload = initApp;
     </script>
 </body>
 </html>

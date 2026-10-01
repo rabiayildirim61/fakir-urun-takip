@@ -8,6 +8,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- SheetJS for Excel Reading in Stock Request Module -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -94,6 +96,10 @@
                 <i class="fa-solid fa-link"></i>
                 <span>Pazaryeri Eşleştirme</span>
             </button>
+            <button id="navBtnStock" onclick="switchGlobalTab('stock')" class="px-4 py-1.5 rounded-lg text-xs font-semibold transition text-slate-300 hover:text-white flex items-center space-x-1.5">
+                <i class="fa-solid fa-warehouse"></i>
+                <span>Stok Talep (Virman)</span>
+            </button>
         </div>
 
         <div class="flex items-center space-x-3">
@@ -103,11 +109,11 @@
                 <span>Ürün Listesine Dön</span>
             </button>
             <!-- Excel Export Butonu -->
-            <button onclick="exportToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-xl text-xs font-semibold transition shadow-sm flex items-center space-x-2">
+            <button id="globalExcelBtn" onclick="exportToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-xl text-xs font-semibold transition shadow-sm flex items-center space-x-2">
                 <i class="fa-solid fa-file-excel"></i>
                 <span>Excel'e Aktar</span>
             </button>
-            <button onclick="openNewProductModal()" class="bg-brand-600 hover:bg-brand-700 text-white px-3.5 py-2 rounded-xl text-xs font-semibold transition shadow-sm flex items-center space-x-2">
+            <button id="globalNewProdBtn" onclick="openNewProductModal()" class="bg-brand-600 hover:bg-brand-700 text-white px-3.5 py-2 rounded-xl text-xs font-semibold transition shadow-sm flex items-center space-x-2">
                 <i class="fa-solid fa-plus"></i>
                 <span>Yeni Ürün</span>
             </button>
@@ -267,12 +273,11 @@
                                 <span>1. Genel Başlangıç ve Onay Adımları</span>
                             </h3>
                             <div class="flex items-center space-x-2">
-                                <!-- İçerik Maili Butonu (Doğrudan panoya kopyalar) -->
+                                <!-- İçerik Maili Butonu -->
                                 <button onclick="copyContentEmailTemplate()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-bold px-3.5 py-2 rounded-xl transition flex items-center space-x-2 shadow-sm">
                                     <i class="fa-solid fa-copy text-xs"></i>
                                     <span>İçerik Mailini Kopyala</span>
                                 </button>
-
                                 <!-- Stok Talep Maili Butonu -->
                                 <button onclick="copyStockEmailTemplate()" class="bg-amber-600 hover:bg-amber-700 text-white text-[11px] font-bold px-3.5 py-2 rounded-xl transition flex items-center space-x-2 shadow-sm">
                                     <i class="fa-solid fa-envelope-open-text text-xs"></i>
@@ -287,29 +292,22 @@
 
                     <!-- 2. BÖLÜM: İKİYE AYRILAN KOLLAR -->
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
                         <!-- SOL KOL: T-SOFT OPERASYONLARI -->
                         <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex flex-col">
                             <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4 flex items-center space-x-2">
                                 <i class="fa-solid fa-laptop-code text-indigo-600"></i>
                                 <span>2. T-Soft Operasyon Adımları</span>
                             </h3>
-                            <div id="tsoftContainer" class="space-y-2.5 flex-1">
-                                <!-- Dinamik doldurulacak -->
-                            </div>
+                            <div id="tsoftContainer" class="space-y-2.5 flex-1"></div>
                         </div>
-
                         <!-- SAĞ KOL: ENTEGRA & PAZARYERLERİ TAKİBİ -->
                         <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex flex-col">
                             <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4 flex items-center space-x-2">
                                 <i class="fa-solid fa-store text-amber-600"></i>
                                 <span>3. Entegra & Pazaryerleri Takibi</span>
                             </h3>
-                            <div id="marketplacesContainer" class="space-y-3 flex-1">
-                                <!-- Dinamik doldurulacak -->
-                            </div>
+                            <div id="marketplacesContainer" class="space-y-3 flex-1"></div>
                         </div>
-
                     </div>
 
                     <!-- 3. BÖLÜM: GÖZ YORMAYAN KOMPAKT AKTİVİTE GÜNLÜĞÜ -->
@@ -321,9 +319,7 @@
                             </h3>
                             <span class="text-[10px] text-slate-400">Son 5 Hareket</span>
                         </div>
-                        <div id="activityLogContainer" class="space-y-1.5">
-                            <!-- Dinamik loglar -->
-                        </div>
+                        <div id="activityLogContainer" class="space-y-1.5"></div>
                     </div>
 
                 </div>
@@ -333,6 +329,134 @@
         <!-- 2. MODÜL: PAZARYERİ EŞLEŞTİRME -->
         <div id="moduleMatch" class="flex-1 flex flex-col overflow-hidden hidden w-full h-full bg-slate-100 relative">
             <iframe id="matchIframe" src="https://fakir-pazaryeri-eslestirme.vercel.app/" class="w-full h-full border-0"></iframe>
+        </div>
+
+        <!-- 3. MODÜL: STOK TALEP (VİRMAN) MODÜLÜ -->
+        <div id="moduleStock" class="flex-1 flex flex-col overflow-hidden hidden w-full h-full bg-slate-50">
+            <!-- Modül Üst Header -->
+            <div class="bg-slate-900 text-white px-6 py-4 flex flex-wrap gap-4 items-center justify-between flex-shrink-0">
+                <div>
+                    <h2 class="text-base font-bold flex items-center space-x-2">
+                        <i class="fa-solid fa-warehouse text-brand-400"></i>
+                        <span>Haftalık Virman Talebi · F028 → F029</span>
+                    </h2>
+                    <p class="text-[11px] text-slate-400">Excel dosyalarınızı yükleyin, haftalık talebi girin, mail taslağını tek tıkla kopyalayın.</p>
+                </div>
+                <div class="flex flex-wrap items-center gap-2">
+                    <label class="bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl px-3 py-2 cursor-pointer text-xs font-medium flex items-center space-x-2 transition" id="upLabelTs">
+                        <i class="fa-solid fa-file-excel text-emerald-400"></i>
+                        <span id="txtTs">① T-Soft Ürünler Excel</span>
+                        <input type="file" id="fileTs" accept=".xlsx,.xls,.csv" class="hidden" onchange="handleStockUpload('ts')">
+                    </label>
+                    <label class="bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl px-3 py-2 cursor-pointer text-xs font-medium flex items-center space-x-2 transition" id="upLabelSt">
+                        <i class="fa-solid fa-file-excel text-emerald-400"></i>
+                        <span id="txtSt">② Stok Adetleri Excel</span>
+                        <input type="file" id="fileSt" accept=".xlsx,.xls,.csv" class="hidden" onchange="handleStockUpload('st')">
+                    </label>
+                    <label class="bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl px-3 py-2 cursor-pointer text-xs font-medium flex items-center space-x-2 transition" id="upLabelSl">
+                        <i class="fa-solid fa-file-excel text-emerald-400"></i>
+                        <span id="txtSl">③ Satış Adetleri (Opsiyonel)</span>
+                        <input type="file" id="fileSl" accept=".xlsx,.xls,.csv" class="hidden" onchange="handleStockUpload('sl')">
+                    </label>
+                </div>
+            </div>
+
+            <!-- Modül Ana İçeriği (İki Kolon: Sol Tablo, Sağ Mail Taslağı) -->
+            <div class="flex-1 grid grid-cols-1 xl:grid-cols-3 gap-6 p-6 overflow-hidden">
+                
+                <!-- Sol Kolon: Ürün Listesi ve Filtreler (2 Sütun Kaplar) -->
+                <div class="xl:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col overflow-hidden p-5 space-y-4">
+                    <div class="flex flex-wrap items-center justify-between gap-3 flex-shrink-0">
+                        <div class="flex flex-wrap items-center gap-3">
+                            <div class="relative">
+                                <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-xs"></i>
+                                <input type="search" id="stockSearch" oninput="renderStockTable()" placeholder="Kod, ürün adı veya barkod ara…" class="bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-3 py-2 text-xs focus:outline-none focus:border-brand-500 w-64">
+                            </div>
+                            <label class="flex items-center space-x-2 text-xs font-medium text-slate-600 cursor-pointer">
+                                <input type="checkbox" id="chkF28" checked onchange="renderStockTable()" class="rounded border-slate-300 text-brand-600 focus:ring-brand-500">
+                                <span>Sadece F028 > 0</span>
+                            </label>
+                            <label class="flex items-center space-x-2 text-xs font-medium text-slate-600 cursor-pointer">
+                                <input type="checkbox" id="chkFs" onchange="renderStockTable()" class="rounded border-slate-300 text-brand-600 focus:ring-brand-500">
+                                <span>Sadece talep girilenler</span>
+                            </label>
+                            <label class="flex items-center space-x-2 text-xs font-medium text-slate-600 cursor-pointer">
+                                <input type="checkbox" id="chkFl" onchange="renderStockTable()" class="rounded border-slate-300 text-brand-600 focus:ring-brand-500">
+                                <span>T-Soft stok < 10</span>
+                            </label>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <button onclick="clearStockDemands()" class="text-xs font-semibold text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 px-3 py-2 rounded-xl transition">Talepleri Temizle</button>
+                            <span id="stockCountBadge" class="text-xs font-bold text-slate-500 bg-slate-100 px-3 py-2 rounded-xl">0 Ürün</span>
+                        </div>
+                    </div>
+
+                    <!-- Tablo -->
+                    <div class="flex-1 overflow-auto custom-scrollbar border border-slate-200 rounded-xl">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-100/80 border-b border-slate-200 text-[11px] font-bold text-slate-600 uppercase tracking-wider sticky top-0 z-10">
+                                    <th class="p-3">Kod</th>
+                                    <th class="p-3">Ürün Adı</th>
+                                    <th class="p-3 text-right">T-Soft Stok</th>
+                                    <th class="p-3 text-right">F028</th>
+                                    <th class="p-3 text-right">F029</th>
+                                    <th class="p-3 text-right" id="thSalesHeader" style="display:none;">Satış</th>
+                                    <th class="p-3 text-right">Talep</th>
+                                    <th class="p-3 text-right">+ Kampanya</th>
+                                    <th class="p-3 text-right">Toplam</th>
+                                </tr>
+                            </thead>
+                            <tbody id="stockTableBody" class="divide-y divide-slate-100 text-xs">
+                                <tr>
+                                    <td colspan="9" class="text-center py-16 text-slate-400">
+                                        <i class="fa-solid fa-file-excel text-3xl mb-2 text-slate-300 block"></i>
+                                        Lütfen üst menüden ① T-Soft Ürünler ve ② Stok Adetleri Excel dosyalarını yükleyin.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Sağ Kolon: Mail Taslağı ve Kopyalama (1 Sütun Kaplar) -->
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col overflow-hidden p-5 space-y-4">
+                    <div class="flex items-center justify-between flex-shrink-0">
+                        <div class="flex items-center space-x-2">
+                            <span class="text-xs font-bold text-slate-700 uppercase tracking-wider">Mail Taslağı</span>
+                            <input type="text" id="mailWhoInput" value="Emre Bey" oninput="updateStockMailPreview()" class="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1 text-xs font-semibold text-slate-800 w-28 focus:outline-none focus:border-brand-500">
+                        </div>
+                        <button onclick="copyStockMailToClipboard()" class="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition shadow-sm flex items-center space-x-2">
+                            <i class="fa-solid fa-clipboard text-xs"></i>
+                            <span>Tabloyu Kopyala</span>
+                        </button>
+                    </div>
+
+                    <div id="stockMailWarning" class="text-[11px] font-medium text-red-500 h-4"></div>
+
+                    <!-- Mail Önizleme Alanı -->
+                    <div class="flex-1 bg-slate-50 border border-slate-200 rounded-xl p-4 overflow-y-auto custom-scrollbar" id="stockMailPreviewContainer">
+                        <div style="font-family:Calibri,Arial,sans-serif;font-size:14px;color:#000">
+                            <p>Emre Bey merhaba,</p>
+                            <p>Aşağıdaki stokların f029 deposuna virman yapılmasını rica ederim.</p>
+                            <table style="border-collapse:collapse;font-family:Calibri,Arial,sans-serif;font-size:14px;width:100%;margin-top:10px;margin-bottom:10px;">
+                                <thead>
+                                    <tr>
+                                        <th style="background:#4472c4;color:#fff;border:1px solid #2f528f;padding:6px 10px;text-align:left">Malzeme Kodu</th>
+                                        <th style="background:#4472c4;color:#fff;border:1px solid #2f528f;padding:6px 10px;text-align:left">Malzeme Adı</th>
+                                        <th style="background:#4472c4;color:#fff;border:1px solid #2f528f;padding:6px 10px;text-align:right">Talep Stok</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="stockMailTableBody">
+                                    <tr><td colspan="3" style="border:1px solid #b4c6e7;padding:8px;text-align:center;color:#64748b;">Henüz ürün seçilmedi.</td></tr>
+                                </tbody>
+                            </table>
+                            <p>İyi çalışmalar,</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
         </div>
 
     </div>
@@ -460,6 +584,7 @@
         let currentProductId = null;
         let noteTimeout = null;
 
+        // Global functions binding
         window.filterHomeTable = filterHomeTable;
         window.openNewProductModal = openNewProductModal;
         window.closeNewProductModal = closeNewProductModal;
@@ -481,7 +606,18 @@
         window.handleLogin = handleLogin;
         window.handleLogout = handleLogout;
 
-        // Oturum Durumu Kontrolü (Giriş yapılmadıysa overlay gösterilir)
+        // Stok Talep Modülü Global Fonksiyonları
+        window.handleStockUpload = handleStockUpload;
+        window.renderStockTable = renderStockTable;
+        window.clearStockDemands = clearStockDemands;
+        window.updateStockMailPreview = updateStockMailPreview;
+        window.copyStockMailToClipboard = copyStockMailToClipboard;
+
+        // Stok Talep Veri Yapıları
+        const stockData = { ts: null, st: null, sl: null };
+        const stockDemands = {}; // { sku: { t: 0, e: 0 } }
+        let stockRows = [];
+
         onAuthStateChanged(auth, (user) => {
             const overlay = document.getElementById('loginOverlay');
             if (user) {
@@ -515,22 +651,41 @@
         function switchGlobalTab(tabName) {
             const modOps = document.getElementById('moduleOps');
             const modMatch = document.getElementById('moduleMatch');
+            const modStock = document.getElementById('moduleStock');
             const btnOps = document.getElementById('navBtnOps');
             const btnMatch = document.getElementById('navBtnMatch');
+            const btnStock = document.getElementById('navBtnStock');
             const backBtn = document.getElementById('backToHomeBtn');
+            const excelBtn = document.getElementById('globalExcelBtn');
+            const newProdBtn = document.getElementById('globalNewProdBtn');
+
+            // Reset all tabs & top action buttons
+            modOps.classList.add('hidden');
+            modMatch.classList.add('hidden');
+            modStock.classList.add('hidden');
+            btnOps.className = "px-4 py-1.5 rounded-lg text-xs font-semibold transition text-slate-300 hover:text-white flex items-center space-x-1.5";
+            btnMatch.className = "px-4 py-1.5 rounded-lg text-xs font-semibold transition text-slate-300 hover:text-white flex items-center space-x-1.5";
+            btnStock.className = "px-4 py-1.5 rounded-lg text-xs font-semibold transition text-slate-300 hover:text-white flex items-center space-x-1.5";
 
             if (tabName === 'ops') {
                 modOps.classList.remove('hidden');
-                modMatch.classList.add('hidden');
                 btnOps.className = "px-4 py-1.5 rounded-lg text-xs font-bold transition bg-brand-600 text-white shadow-sm flex items-center space-x-1.5";
-                btnMatch.className = "px-4 py-1.5 rounded-lg text-xs font-semibold transition text-slate-300 hover:text-white flex items-center space-x-1.5";
-            } else {
-                modOps.classList.add('hidden');
+                excelBtn.classList.remove('hidden');
+                newProdBtn.classList.remove('hidden');
+            } else if (tabName === 'match') {
                 modMatch.classList.remove('hidden');
                 btnMatch.className = "px-4 py-1.5 rounded-lg text-xs font-bold transition bg-brand-600 text-white shadow-sm flex items-center space-x-1.5";
-                btnOps.className = "px-4 py-1.5 rounded-lg text-xs font-semibold transition text-slate-300 hover:text-white flex items-center space-x-1.5";
                 backBtn.classList.remove('flex');
                 backBtn.classList.add('hidden');
+                excelBtn.classList.add('hidden');
+                newProdBtn.classList.add('hidden');
+            } else if (tabName === 'stock') {
+                modStock.classList.remove('hidden');
+                btnStock.className = "px-4 py-1.5 rounded-lg text-xs font-bold transition bg-brand-600 text-white shadow-sm flex items-center space-x-1.5";
+                backBtn.classList.remove('flex');
+                backBtn.classList.add('hidden');
+                excelBtn.classList.add('hidden');
+                newProdBtn.classList.add('hidden');
             }
         }
 
@@ -540,7 +695,6 @@
                 products.push({ id: docSnap.id, ...docSnap.data() });
             });
 
-            // İlk açılışta hiç ürün yoksa otomatik 41005899 Auria IPL Lazer ürününü ekle
             if (products.length === 0) {
                 const defaultProd = {
                     id: 'prod_auria_41005899',
@@ -957,6 +1111,245 @@
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+        }
+
+        // ================= STOK TALEP (VİRMAN) MODÜLÜ SCRIPTS =================
+        const S_fn = v => String(v ?? '').trim().replace(/\.0$/, '');
+        const S_esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+        const S_num = v => { const x = parseFloat(String(v ?? '').replace(',', '.')); return isNaN(x) ? 0 : x; };
+        const S_fmt = n => n == null ? '—' : n.toLocaleString('tr-TR');
+
+        const S_findRow = (R, name) => R.findIndex(r => r && r.some(c => S_fn(c).toLowerCase() === name.toLowerCase()));
+        
+        const S_parsers = {
+            ts(R) {
+                const h = S_findRow(R, 'Web Servis Kodu');
+                if (h < 0) throw new Error('“Web Servis Kodu” başlığı bulunamadı');
+                const H = R[h].map(S_fn), idx = n => H.findIndex(x => x.toLowerCase() === n.toLowerCase());
+                return R.slice(h + 1).filter(r => r && S_fn(r[idx('Web Servis Kodu')])).map(r => ({
+                    code: S_fn(r[idx('Web Servis Kodu')]),
+                    name: S_fn(r[idx('Ürün Adı')]),
+                    bar: S_fn(r[idx('Barkod')]),
+                    ts: S_num(r[idx('Stok')])
+                }));
+            },
+            st(R) {
+                let h = S_findRow(R, 'Malzeme'), a = -1, b = -1;
+                if (h < 0) throw new Error('“Malzeme” başlığı bulunamadı');
+                R.slice(0, h + 2).forEach(r => (r || []).forEach((c, i) => {
+                    const t = S_fn(c).toUpperCase();
+                    if (t === 'F028') a = i;
+                    if (t === 'F029') b = i;
+                }));
+                while (R[h + 1] && S_fn(R[h + 1][0]) === 'Malzeme') h++;
+                if (a < 0 || b < 0) throw new Error('F028 / F029 kolonları bulunamadı');
+                return R.slice(h + 1).filter(r => r && S_fn(r[0]) && !/toplam/i.test(S_fn(r[0]))).map(r => ({
+                    code: S_fn(r[0]),
+                    name: S_fn(r[1]),
+                    f28: S_num(r[a]),
+                    f29: S_num(r[b])
+                }));
+            },
+            sl(R) {
+                const h = S_findRow(R, 'Malzeme');
+                if (h < 0) throw new Error('“Malzeme” başlığı bulunamadı');
+                const H = R[h].map(S_fn), cc = H.findIndex(x => x.toLowerCase() === 'malzeme');
+                let q = -1, y = H.findIndex(x => /^2026/.test(x));
+                R.slice(0, h + 3).forEach(r => (r || []).forEach((c, i) => {
+                    if (/^(sipariş|satış) adedi$/i.test(S_fn(c))) q = i;
+                }));
+                const k = q >= 0 ? q : y;
+                if (k < 0) throw new Error('Satış adedi kolonu bulunamadı');
+                return R.slice(h + 1).filter(r => r && S_fn(r[cc]) && !/toplam/i.test(S_fn(r[cc]))).map(r => ({
+                    code: S_fn(r[cc]),
+                    sl: S_num(r[k])
+                }));
+            }
+        };
+
+        async function handleStockUpload(key) {
+            const fileInput = document.getElementById('file' + key.charAt(0).toUpperCase() + key.slice(1));
+            const labelEl = document.getElementById('upLabel' + key.charAt(0).toUpperCase() + key.slice(1));
+            const textEl = document.getElementById('txt' + key.charAt(0).toUpperCase() + key.slice(1));
+            
+            const file = fileInput.files[0];
+            if (!file) return;
+
+            try {
+                const wb = XLSX.read(await file.arrayBuffer(), { type: 'array' });
+                const sheet = wb.Sheets[wb.SheetNames[0]];
+                const raw = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: null });
+                
+                stockData[key] = S_parsers[key](raw);
+                labelEl.className = "bg-brand-600/20 border border-brand-500 rounded-xl px-3 py-2 cursor-pointer text-xs font-medium flex items-center space-x-2 transition text-brand-300";
+                textEl.textContent = `${key.toUpperCase()} ✓ (${stockData[key].length} satır)`;
+                
+                buildStockRows();
+            } catch (e) {
+                labelEl.className = "bg-red-600/20 border border-red-500 rounded-xl px-3 py-2 cursor-pointer text-xs font-medium flex items-center space-x-2 transition text-red-300";
+                textEl.textContent = `Hata: ${e.message || e}`;
+            }
+        }
+
+        function buildStockRows() {
+            if (!stockData.ts || !stockData.st) return;
+            const stMap = new Map(stockData.st.map(x => [x.code, x]));
+            const slMap = new Map((stockData.sl || []).map(x => [x.code, x.sl]));
+            const hasSales = !!stockData.sl;
+
+            if (hasSales) {
+                document.getElementById('thSalesHeader').style.display = 'table-cell';
+            }
+
+            stockRows = stockData.ts.map(t => {
+                const s = stMap.get(t.code);
+                return {
+                    ...t,
+                    f28: s ? s.f28 : 0,
+                    f29: s ? s.f29 : 0,
+                    sl: hasSales ? (slMap.has(t.code) ? slMap.get(t.code) : null) : undefined
+                };
+            });
+            renderStockTable();
+        }
+
+        function getStockTotal(code) {
+            const z = stockDemands[code];
+            return z ? (z.t + z.e) : 0;
+        }
+
+        function renderStockTable() {
+            const q = document.getElementById('stockSearch').value.toLowerCase().trim();
+            const f28Only = document.getElementById('chkF28').checked;
+            const demandsOnly = document.getElementById('chkFs').checked;
+            const lowTs = document.getElementById('chkFl').checked;
+            const hasSales = !!stockData.sl;
+
+            const filtered = stockRows.filter(p => {
+                if (f28Only && p.f28 <= 0) return false;
+                if (demandsOnly && getStockTotal(p.code) <= 0) return false;
+                if (lowTs && p.ts >= 10) return false;
+                if (q && !(`${p.code} ${p.name} ${p.bar}`.toLowerCase().includes(q))) return false;
+                return true;
+            });
+
+            const tbody = document.getElementById('stockTableBody');
+            tbody.innerHTML = filtered.slice(0, 700).map(p => {
+                const z = stockDemands[p.code] || { t: 0, e: 0 };
+                const T = z.t + z.e;
+                const isSelected = T > 0;
+                const isExceeded = T > p.f28;
+
+                return `
+                    <tr data-code="${S_esc(p.code)}" class="${isSelected ? 'bg-brand-50/50' : ''} hover:bg-slate-50 transition border-b border-slate-100">
+                        <td class="p-3 font-semibold text-slate-700">${S_esc(p.code)}</td>
+                        <td class="p-3 font-medium text-slate-900">${S_esc(p.name)}</td>
+                        <td class="p-3 text-right font-medium ${p.ts < 10 ? 'text-red-600 font-bold' : 'text-slate-600'}">${S_fmt(p.ts)}</td>
+                        <td class="p-3 text-right font-bold text-slate-800">${S_fmt(p.f28)}</td>
+                        <td class="p-3 text-right text-slate-600">${S_fmt(p.f29)}</td>
+                        ${hasSales ? `<td class="p-3 text-right text-slate-400 text-[11px]">${p.sl == null ? '—' : S_fmt(p.sl)}</td>` : ''}
+                        <td class="p-3 text-right">
+                            <input type="number" min="0" value="${z.t || ''}" oninput="handleDemandInput('${S_esc(p.code)}', 't', this.value)" class="w-16 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-right focus:outline-none focus:border-brand-500 text-xs">
+                        </td>
+                        <td class="p-3 text-right">
+                            <input type="number" min="0" value="${z.e || ''}" oninput="handleDemandInput('${S_esc(p.code)}', 'e', this.value)" class="w-16 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-right focus:outline-none focus:border-brand-500 text-xs">
+                        </td>
+                        <td class="p-3 text-right font-bold ${isExceeded ? 'text-red-600' : 'text-brand-700'}">${T || ''}</td>
+                    </tr>
+                `;
+            }).join('') || `<tr><td colspan="9" class="text-center py-12 text-slate-400">Ürün bulunamadı.</td></tr>`;
+
+            document.getElementById('stockCountBadge').textContent = `${filtered.length} Ürün`;
+            updateStockMailPreview();
+        }
+
+        function handleDemandInput(code, type, val) {
+            if (!stockDemands[code]) stockDemands[code] = { t: 0, e: 0 };
+            stockDemands[code][type] = Math.max(0, Math.floor(parseFloat(val) || 0));
+            if (stockDemands[code].t === 0 && stockDemands[code].e === 0) {
+                delete stockDemands[code];
+            }
+            renderStockTable();
+        }
+
+        function clearStockDemands() {
+            for (const k in stockDemands) delete stockDemands[k];
+            renderStockTable();
+        }
+
+        function updateStockMailPreview() {
+            const who = document.getElementById('mailWhoInput').value.trim() || 'Emre Bey';
+            const items = stockRows.filter(p => getStockTotal(p.code) > 0);
+            
+            const tbody = document.getElementById('stockMailTableBody');
+            if (items.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="3" style="border:1px solid #b4c6e7;padding:8px;text-align:center;color:#64748b;">Henüz ürün seçilmedi.</td></tr>`;
+            } else {
+                tbody.innerHTML = items.map(p => `
+                    <tr>
+                        <td style="border:1px solid #b4c6e7;padding:6px 10px">${S_esc(p.code)}</td>
+                        <td style="border:1px solid #b4c6e7;padding:6px 10px">${S_esc(p.name)}</td>
+                        <td style="border:1px solid #b4c6e7;padding:6px 10px;background:#fce4ec;font-weight:bold;text-align:right">${getStockTotal(p.code)}</td>
+                    </tr>
+                `).join('');
+            }
+
+            const warnings = [];
+            if (items.length > 30) warnings.push(`${items.length} ürün seçildi (Önerilen max 30)`);
+            const exceededCount = items.filter(p => getStockTotal(p.code) > p.f28).length;
+            if (exceededCount > 0) warnings.push(`${exceededCount} üründe talep F028 çekilebilir stoğunu aşıyor!`);
+            
+            document.getElementById('stockMailWarning').textContent = warnings.join(' · ');
+        }
+
+        function copyStockMailToClipboard() {
+            const who = document.getElementById('mailWhoInput').value.trim() || 'Emre Bey';
+            const items = stockRows.filter(p => getStockTotal(p.code) > 0);
+            
+            const html = `
+                <div style="font-family:Calibri,Arial,sans-serif;font-size:14px;color:#000">
+                    <p>${S_esc(who)} merhaba,</p>
+                    <p>Aşağıdaki stokların f029 deposuna virman yapılmasını rica ederim.</p>
+                    <table style="border-collapse:collapse;font-family:Calibri,Arial,sans-serif;font-size:14px">
+                        <thead>
+                            <tr>
+                                <th style="background:#4472c4;color:#fff;border:1px solid #2f528f;padding:5px 10px;text-align:left">Malzeme Kodu</th>
+                                <th style="background:#4472c4;color:#fff;border:1px solid #2f528f;padding:5px 10px;text-align:left">Malzeme Adı</th>
+                                <th style="background:#4472c4;color:#fff;border:1px solid #2f528f;padding:5px 10px;text-align:right">Talep Stok</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${items.map(p => `
+                                <tr>
+                                    <td style="border:1px solid #b4c6e7;padding:4px 10px">${S_esc(p.code)}</td>
+                                    <td style="border:1px solid #b4c6e7;padding:4px 10px">${S_esc(p.name)}</td>
+                                    <td style="border:1px solid #b4c6e7;padding:4px 10px;background:#fce4ec;font-weight:bold;text-align:right">${getStockTotal(p.code)}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                    <p>İyi çalışmalar,</p>
+                </div>
+            `;
+
+            const plainText = `${who} merhaba,\n\nAşağıdaki stokların f029 deposuna virman yapılmasını rica ederim.\n\n` + 
+                items.map(p => `${p.code}\t${p.name}\t${getStockTotal(p.code)}`).join('\n') + 
+                `\n\nİyi çalışmalar,`;
+
+            try {
+                navigator.clipboard.write([
+                    new ClipboardItem({
+                        'text/html': new Blob([html], { type: 'text/html' }),
+                        'text/plain': new Blob([plainText], { type: 'text/plain' })
+                    })
+                ]).then(() => {
+                    alert("✓ Stok talep tablosu ve mail metni panoya kopyalandı! Doğrudan maile yapıştırabilirsiniz.");
+                });
+            } catch (err) {
+                navigator.clipboard.writeText(plainText).then(() => {
+                    alert("Tablo metin olarak panoya kopyalandı.");
+                });
+            }
         }
     </script>
 </body>

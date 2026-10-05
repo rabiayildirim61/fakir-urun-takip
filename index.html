@@ -100,15 +100,17 @@
                 <i class="fa-solid fa-warehouse"></i>
                 <span>Stok Talep (Virman)</span>
             </button>
+            <button id="navBtnInvoices" onclick="switchGlobalTab('invoices')" class="px-4 py-1.5 rounded-lg text-xs font-semibold transition text-slate-300 hover:text-white flex items-center space-x-1.5">
+                <i class="fa-solid fa-file-invoice-dollar"></i>
+                <span>Faturalar</span>
+            </button>
         </div>
 
         <div class="flex items-center space-x-3">
-            <!-- Ana Sayfaya Dön Butonu (Detaydayken görünür) -->
             <button id="backToHomeBtn" onclick="goHome()" class="bg-slate-800 hover:bg-slate-700 text-white px-3.5 py-2 rounded-xl text-xs font-semibold transition shadow-sm hidden items-center space-x-2 border border-slate-700">
                 <i class="fa-solid fa-arrow-left"></i>
                 <span>Ürün Listesine Dön</span>
             </button>
-            <!-- Excel Export Butonu -->
             <button id="globalExcelBtn" onclick="exportToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-xl text-xs font-semibold transition shadow-sm flex items-center space-x-2">
                 <i class="fa-solid fa-file-excel"></i>
                 <span>Excel'e Aktar</span>
@@ -117,7 +119,6 @@
                 <i class="fa-solid fa-plus"></i>
                 <span>Yeni Ürün</span>
             </button>
-            <!-- Çıkış Yap Butonu -->
             <button onclick="handleLogout()" class="bg-red-600/80 hover:bg-red-600 text-white px-3.5 py-2 rounded-xl text-xs font-semibold transition shadow-sm flex items-center space-x-2 border border-red-500" title="Güvenli Çıkış Yap">
                 <i class="fa-solid fa-right-from-bracket"></i>
                 <span>Çıkış</span>
@@ -130,8 +131,6 @@
 
         <!-- 1. MODÜL: ÜRÜN OPERASYONLARI -->
         <div id="moduleOps" class="flex-1 flex flex-col overflow-hidden relative w-full h-full">
-            
-            <!-- 1.1. ANA SAYFA ÜRÜN LİSTESİ TABLOSU -->
             <div id="homeView" class="flex-1 flex flex-col overflow-hidden bg-slate-50 p-6">
                 <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6 flex-shrink-0">
                     <div>
@@ -139,7 +138,6 @@
                         <p class="text-xs text-slate-500">Tüm ürünlerin genel durumunu, tarihlerini ve pazaryeri durumlarını buradan takip edebilirsiniz.</p>
                     </div>
                     <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto">
-                        <!-- Pazaryeri / Durum Filtreleme Açılır Menüsü -->
                         <div class="relative">
                             <select id="filterSelect" onchange="filterHomeTable()" class="bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-700 focus:outline-none focus:border-brand-500 transition shadow-sm cursor-pointer">
                                 <option value="all">Tüm Ürünler</option>
@@ -154,7 +152,6 @@
                             </select>
                         </div>
 
-                        <!-- Arama Çubuğu -->
                         <div class="relative flex-1 sm:w-64">
                             <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-xs"></i>
                             <input type="text" id="homeSearchInput" oninput="filterHomeTable()" placeholder="Ürün adı veya kod ile ara..." class="w-full bg-white border border-slate-200 rounded-xl pl-9 pr-3 py-2 text-xs focus:outline-none focus:border-brand-500 transition shadow-sm">
@@ -163,7 +160,6 @@
                     </div>
                 </div>
 
-                <!-- Tablo Alanı -->
                 <div class="flex-1 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
                     <div class="flex-1 overflow-auto custom-scrollbar">
                         <table class="w-full text-left border-collapse">
@@ -187,9 +183,8 @@
                 </div>
             </div>
 
-            <!-- 1.2. TEKİL ÜRÜN DETAY EKRANI -->
+            <!-- DETAY EKRANI -->
             <div id="productDetailView" class="flex-1 flex flex-col overflow-hidden bg-slate-50/50 hidden">
-                <!-- Ürün Başlık ve İlerleme Özeti -->
                 <div class="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between flex-shrink-0">
                     <div>
                         <div class="flex items-center space-x-2 mb-1">
@@ -214,10 +209,7 @@
                     </div>
                 </div>
 
-                <!-- Kaydırma Alanı -->
                 <div class="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-6">
-
-                    <!-- LOJİSTİK & GÜMRÜK TAKVİMİ KARTI -->
                     <div class="bg-gradient-to-r from-slate-900 to-slate-800 rounded-2xl p-5 text-white shadow-lg space-y-4">
                         <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
                             <div>
@@ -252,7 +244,6 @@
                             </div>
                         </div>
 
-                        <!-- OPERASYON / GECİKME NOTU ALANI -->
                         <div class="pt-3 border-t border-slate-700">
                             <div class="flex justify-between items-center mb-1.5">
                                 <label class="text-[11px] font-bold text-brand-400 uppercase tracking-wider flex items-center space-x-1.5">
@@ -265,7 +256,6 @@
                         </div>
                     </div>
 
-                    <!-- 1. BÖLÜM: ÜST ORTAK AKIŞ -->
                     <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
                         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                             <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center space-x-2">
@@ -273,26 +263,20 @@
                                 <span>1. Genel Başlangıç ve Onay Adımları</span>
                             </h3>
                             <div class="flex items-center space-x-2">
-                                <!-- İçerik Maili Butonu -->
                                 <button onclick="copyContentEmailTemplate()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-bold px-3.5 py-2 rounded-xl transition flex items-center space-x-2 shadow-sm">
                                     <i class="fa-solid fa-copy text-xs"></i>
                                     <span>İçerik Mailini Kopyala</span>
                                 </button>
-                                <!-- Stok Talep Maili Butonu -->
                                 <button onclick="copyStockEmailTemplate()" class="bg-amber-600 hover:bg-amber-700 text-white text-[11px] font-bold px-3.5 py-2 rounded-xl transition flex items-center space-x-2 shadow-sm">
                                     <i class="fa-solid fa-envelope-open-text text-xs"></i>
                                     <span>Stok Talep Maili</span>
                                 </button>
                             </div>
                         </div>
-                        <div id="topFlowContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                            <!-- Dinamik doldurulacak -->
-                        </div>
+                        <div id="topFlowContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
                     </div>
 
-                    <!-- 2. BÖLÜM: İKİYE AYRILAN KOLLAR -->
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <!-- SOL KOL: T-SOFT OPERASYONLARI -->
                         <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex flex-col">
                             <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4 flex items-center space-x-2">
                                 <i class="fa-solid fa-laptop-code text-indigo-600"></i>
@@ -300,7 +284,6 @@
                             </h3>
                             <div id="tsoftContainer" class="space-y-2.5 flex-1"></div>
                         </div>
-                        <!-- SAĞ KOL: ENTEGRA & PAZARYERLERİ TAKİBİ -->
                         <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex flex-col">
                             <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4 flex items-center space-x-2">
                                 <i class="fa-solid fa-store text-amber-600"></i>
@@ -310,7 +293,6 @@
                         </div>
                     </div>
 
-                    <!-- 3. BÖLÜM: GÖZ YORMAYAN KOMPAKT AKTİVİTE GÜNLÜĞÜ -->
                     <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
                         <div class="flex items-center justify-between mb-3">
                             <h3 class="text-[11px] font-bold uppercase tracking-wider text-slate-400 flex items-center space-x-1.5">
@@ -321,7 +303,6 @@
                         </div>
                         <div id="activityLogContainer" class="space-y-1.5"></div>
                     </div>
-
                 </div>
             </div>
         </div>
@@ -333,7 +314,6 @@
 
         <!-- 3. MODÜL: STOK TALEP (VİRMAN) MODÜLÜ -->
         <div id="moduleStock" class="flex-1 flex flex-col overflow-hidden hidden w-full h-full bg-slate-50">
-            <!-- Modül Üst Header -->
             <div class="bg-slate-900 text-white px-6 py-4 flex flex-wrap gap-4 items-center justify-between flex-shrink-0">
                 <div>
                     <h2 class="text-base font-bold flex items-center space-x-2">
@@ -361,10 +341,7 @@
                 </div>
             </div>
 
-            <!-- Modül Ana İçeriği (İki Kolon: Sol Tablo, Sağ Mail Taslağı) -->
             <div class="flex-1 grid grid-cols-1 xl:grid-cols-3 gap-6 p-6 overflow-hidden">
-                
-                <!-- Sol Kolon: Ürün Listesi ve Filtreler (2 Sütun Kaplar) -->
                 <div class="xl:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col overflow-hidden p-5 space-y-4">
                     <div class="flex flex-wrap items-center justify-between gap-3 flex-shrink-0">
                         <div class="flex flex-wrap items-center gap-3">
@@ -391,7 +368,6 @@
                         </div>
                     </div>
 
-                    <!-- Tablo -->
                     <div class="flex-1 overflow-auto custom-scrollbar border border-slate-200 rounded-xl">
                         <table class="w-full text-left border-collapse">
                             <thead>
@@ -419,7 +395,6 @@
                     </div>
                 </div>
 
-                <!-- Sağ Kolon: Mail Taslağı ve Kopyalama (1 Sütun Kaplar) -->
                 <div class="bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col overflow-hidden p-5 space-y-4">
                     <div class="flex items-center justify-between flex-shrink-0">
                         <div class="flex items-center space-x-2">
@@ -434,7 +409,6 @@
 
                     <div id="stockMailWarning" class="text-[11px] font-medium text-red-500 h-4"></div>
 
-                    <!-- Mail Önizleme Alanı -->
                     <div class="flex-1 bg-slate-50 border border-slate-200 rounded-xl p-4 overflow-y-auto custom-scrollbar" id="stockMailPreviewContainer">
                         <div style="font-family:Calibri,Arial,sans-serif;font-size:14px;color:#000">
                             <p>Emre Bey merhaba,</p>
@@ -455,7 +429,46 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
 
+        <!-- 4. MODÜL: FATURALAR YÖNETİM MODÜLÜ -->
+        <div id="moduleInvoices" class="flex-1 flex flex-col overflow-hidden hidden w-full h-full bg-slate-50 p-6">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 flex-shrink-0">
+                <div>
+                    <h2 class="text-lg font-bold text-slate-800 flex items-center space-x-2">
+                        <i class="fa-solid fa-file-invoice-dollar text-brand-600"></i>
+                        <span>Fatura Yönetimi ve Takip Paneli</span>
+                    </h2>
+                    <p class="text-xs text-slate-500">Operasyonel faturalarınızı, SOS taleplerini ve muhasebe teslim süreçlerini buradan yönetin.</p>
+                </div>
+                <button onclick="openInvoiceModal()" class="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2.5 rounded-xl text-xs font-bold transition shadow-sm flex items-center space-x-2">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>Yeni Fatura Ekle</span>
+                </button>
+            </div>
+
+            <!-- Fatura Tablosu -->
+            <div class="flex-1 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+                <div class="flex-1 overflow-auto custom-scrollbar">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-100/80 border-b border-slate-200 text-[11px] font-bold text-slate-600 uppercase tracking-wider sticky top-0 z-10">
+                                <th class="p-4">Fatura İsmi</th>
+                                <th class="p-4">Detay / Açıklama</th>
+                                <th class="p-4">Tutar (TL)</th>
+                                <th class="p-4">Fatura Tarihi</th>
+                                <th class="p-4 text-center">SOS Talebi</th>
+                                <th class="p-4">Muhasebe Teslim</th>
+                                <th class="p-4">Teslim Alan Kişi</th>
+                                <th class="p-4 text-center">İşlem</th>
+                            </tr>
+                        </thead>
+                        <tbody id="invoiceTableBody" class="divide-y divide-slate-100 text-xs">
+                            <!-- Dinamik Fatura Satırları -->
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
@@ -527,6 +540,65 @@
         </div>
     </div>
 
+    <!-- FATURA EKLEME / DÜZENLEME MODALI -->
+    <div id="invoiceModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl border border-slate-100">
+            <div class="flex justify-between items-center mb-4">
+                <h3 id="invoiceModalTitle" class="text-base font-bold text-slate-800">Yeni Fatura Ekle</h3>
+                <button onclick="closeInvoiceModal()" class="text-slate-400 hover:text-slate-600">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <form id="invoiceForm" onsubmit="handleInvoiceSubmit(event)" class="space-y-4">
+                <input type="hidden" id="invId">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Fatura İsmi / Şirket</label>
+                    <input type="text" id="invTitle" required placeholder="Örn: Trendyol Reklam Faturası" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-brand-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Fatura Detayı / Açıklama</label>
+                    <input type="text" id="invDetail" placeholder="Örn: Eylül ayı öne çıkarma hizmet bedeli" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-brand-500">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Tutar (TL)</label>
+                        <input type="number" step="0.01" id="invAmount" required placeholder="0.00" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-brand-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Fatura Tarihi</label>
+                        <input type="date" id="invDate" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-brand-500">
+                    </div>
+                </div>
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2">
+                    <label class="flex items-center space-x-2 text-xs font-medium text-slate-700 cursor-pointer">
+                        <input type="checkbox" id="invSos" class="rounded border-slate-300 text-brand-600 focus:ring-brand-500">
+                        <span>SOS Talebi Açıldı mı?</span>
+                    </label>
+                </div>
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2">
+                    <label class="flex items-center space-x-2 text-xs font-medium text-slate-700 cursor-pointer">
+                        <input type="checkbox" id="invAccountingSubmitted" onchange="toggleAccountingDateField(this.checked)" class="rounded border-slate-300 text-brand-600 focus:ring-brand-500">
+                        <span>Muhasebeye Teslim Edildi mi?</span>
+                    </label>
+                    <div id="accountingDateContainer" class="hidden pt-1 space-y-2">
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-500 mb-1">Teslim Tarihi</label>
+                            <input type="date" id="invAccountingDate" class="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:border-brand-500">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-500 mb-1">Teslim Alan Kişi</label>
+                            <input type="text" id="invReceiverName" placeholder="Örn: Mehmet Bey" class="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:border-brand-500">
+                        </div>
+                    </div>
+                </div>
+                <div class="flex justify-end space-x-3 pt-2">
+                    <button type="button" onclick="closeInvoiceModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition">İptal</button>
+                    <button type="submit" class="bg-brand-600 hover:bg-brand-700 text-white px-5 py-2 rounded-xl text-xs font-semibold transition shadow-sm">Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- FIREBASE VE UYGULAMA MANTIĞI -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
@@ -581,6 +653,7 @@
         ];
 
         let products = [];
+        let invoices = [];
         let currentProductId = null;
         let noteTimeout = null;
 
@@ -606,6 +679,14 @@
         window.handleLogin = handleLogin;
         window.handleLogout = handleLogout;
 
+        // Fatura Modülü Global Fonksiyonları
+        window.openInvoiceModal = openInvoiceModal;
+        window.closeInvoiceModal = closeInvoiceModal;
+        window.handleInvoiceSubmit = handleInvoiceSubmit;
+        window.editInvoice = editInvoice;
+        window.deleteInvoice = deleteInvoice;
+        window.toggleAccountingDateField = toggleAccountingDateField;
+
         // Stok Talep Modülü Global Fonksiyonları
         window.handleStockUpload = handleStockUpload;
         window.renderStockTable = renderStockTable;
@@ -615,7 +696,7 @@
 
         // Stok Talep Veri Yapıları
         const stockData = { ts: null, st: null, sl: null };
-        const stockDemands = {}; // { sku: { t: 0, e: 0 } }
+        const stockDemands = {}; 
         let stockRows = [];
 
         onAuthStateChanged(auth, (user) => {
@@ -652,20 +733,23 @@
             const modOps = document.getElementById('moduleOps');
             const modMatch = document.getElementById('moduleMatch');
             const modStock = document.getElementById('moduleStock');
+            const modInvoices = document.getElementById('moduleInvoices');
             const btnOps = document.getElementById('navBtnOps');
             const btnMatch = document.getElementById('navBtnMatch');
             const btnStock = document.getElementById('navBtnStock');
+            const btnInvoices = document.getElementById('navBtnInvoices');
             const backBtn = document.getElementById('backToHomeBtn');
             const excelBtn = document.getElementById('globalExcelBtn');
             const newProdBtn = document.getElementById('globalNewProdBtn');
 
-            // Reset all tabs & top action buttons
             modOps.classList.add('hidden');
             modMatch.classList.add('hidden');
             modStock.classList.add('hidden');
+            modInvoices.classList.add('hidden');
             btnOps.className = "px-4 py-1.5 rounded-lg text-xs font-semibold transition text-slate-300 hover:text-white flex items-center space-x-1.5";
             btnMatch.className = "px-4 py-1.5 rounded-lg text-xs font-semibold transition text-slate-300 hover:text-white flex items-center space-x-1.5";
             btnStock.className = "px-4 py-1.5 rounded-lg text-xs font-semibold transition text-slate-300 hover:text-white flex items-center space-x-1.5";
+            btnInvoices.className = "px-4 py-1.5 rounded-lg text-xs font-semibold transition text-slate-300 hover:text-white flex items-center space-x-1.5";
 
             if (tabName === 'ops') {
                 modOps.classList.remove('hidden');
@@ -686,9 +770,17 @@
                 backBtn.classList.add('hidden');
                 excelBtn.classList.add('hidden');
                 newProdBtn.classList.add('hidden');
+            } else if (tabName === 'invoices') {
+                modInvoices.classList.remove('hidden');
+                btnInvoices.className = "px-4 py-1.5 rounded-lg text-xs font-bold transition bg-brand-600 text-white shadow-sm flex items-center space-x-1.5";
+                backBtn.classList.remove('flex');
+                backBtn.classList.add('hidden');
+                excelBtn.classList.add('hidden');
+                newProdBtn.classList.add('hidden');
             }
         }
 
+        // Live Products Sync
         onSnapshot(collection(db, "products"), (snapshot) => {
             products = [];
             snapshot.forEach((docSnap) => {
@@ -715,6 +807,15 @@
             if (currentProductId) {
                 renderProductDetails();
             }
+        });
+
+        // Live Invoices Sync
+        onSnapshot(collection(db, "invoices"), (snapshot) => {
+            invoices = [];
+            snapshot.forEach((docSnap) => {
+                invoices.push({ id: docSnap.id, ...docSnap.data() });
+            });
+            renderInvoicesTable();
         });
 
         async function saveProductToFirestore(product, actionDesc = "") {
@@ -932,6 +1033,7 @@
         }
 
         function formatDate(dateStr) {
+            if(!dateStr) return "";
             const parts = dateStr.split('-');
             if(parts.length === 3) return `${parts[2]}.${parts[1]}.${parts[0]}`;
             return dateStr;
@@ -1111,6 +1213,131 @@
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+        }
+
+        // ================= FATURA MODÜLÜ SCRIPTS =================
+        function renderInvoicesTable() {
+            const tbody = document.getElementById('invoiceTableBody');
+            if (!tbody) return;
+            tbody.innerHTML = "";
+
+            if (invoices.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" class="text-center py-12 text-slate-400">Henüz kaydedilmiş fatura bulunmuyor.</td></tr>`;
+                return;
+            }
+
+            invoices.sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(inv => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 transition border-b border-slate-100";
+                
+                const formattedAmount = Number(inv.amount || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                const sosBadge = inv.sos ? `<span class="bg-amber-100 text-amber-800 font-bold px-2.5 py-1 rounded-full text-[10px]">Açıldı</span>` : `<span class="bg-slate-100 text-slate-500 font-medium px-2.5 py-1 rounded-full text-[10px]">Açılmadı</span>`;
+                
+                let accountingInfo = `<span class="text-slate-400 font-medium">Teslim Edilmedi</span>`;
+                if (inv.accountingSubmitted) {
+                    accountingInfo = `<div class="flex flex-col"><span class="text-emerald-600 font-bold">Teslim Edildi</span><span class="text-[10px] text-slate-400">${formatDate(inv.accountingDate)}</span></div>`;
+                }
+
+                const receiverInfo = inv.accountingSubmitted && inv.receiverName 
+                    ? `<span class="font-semibold text-slate-700">${inv.receiverName}</span>` 
+                    : `<span class="text-slate-300">-</span>`;
+
+                tr.innerHTML = `
+                    <td class="p-4 font-bold text-slate-800">${inv.title}</td>
+                    <td class="p-4 text-slate-600 max-w-xs truncate">${inv.detail || "-"}</td>
+                    <td class="p-4 font-bold text-brand-700">₺${formattedAmount}</td>
+                    <td class="p-4 text-slate-600">${formatDate(inv.date)}</td>
+                    <td class="p-4 text-center">${sosBadge}</td>
+                    <td class="p-4">${accountingInfo}</td>
+                    <td class="p-4">${receiverInfo}</td>
+                    <td class="p-4 text-center space-x-2">
+                        <button onclick="editInvoice('${inv.id}')" class="text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 p-2 rounded-lg transition" title="Düzenle">
+                            <i class="fa-solid fa-pen"></i>
+                        </button>
+                        <button onclick="deleteInvoice('${inv.id}')" class="text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100 p-2 rounded-lg transition" title="Sil">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function openInvoiceModal() {
+            document.getElementById('invId').value = "";
+            document.getElementById('invoiceForm').reset();
+            document.getElementById('invoiceModalTitle').textContent = "Yeni Fatura Ekle";
+            toggleAccountingDateField(false);
+            document.getElementById('invoiceModal').classList.remove('hidden');
+        }
+
+        function closeInvoiceModal() {
+            document.getElementById('invoiceModal').classList.add('hidden');
+        }
+
+        function toggleAccountingDateField(show) {
+            const container = document.getElementById('accountingDateContainer');
+            if (show) {
+                container.classList.remove('hidden');
+            } else {
+                container.classList.add('hidden');
+                document.getElementById('invAccountingDate').value = "";
+                document.getElementById('invReceiverName').value = "";
+            }
+        }
+
+        function editInvoice(id) {
+            const inv = invoices.find(x => x.id === id);
+            if (!inv) return;
+
+            document.getElementById('invId').value = inv.id;
+            document.getElementById('invTitle').value = inv.title || "";
+            document.getElementById('invDetail').value = inv.detail || "";
+            document.getElementById('invAmount').value = inv.amount || "";
+            document.getElementById('invDate').value = inv.date || "";
+            document.getElementById('invSos').checked = !!inv.sos;
+            
+            const accSubmitted = !!inv.accountingSubmitted;
+            document.getElementById('invAccountingSubmitted').checked = accSubmitted;
+            toggleAccountingDateField(accSubmitted);
+            document.getElementById('invAccountingDate').value = inv.accountingDate || "";
+            document.getElementById('invReceiverName').value = inv.receiverName || "";
+
+            document.getElementById('invoiceModalTitle').textContent = "Faturayı Düzenle";
+            document.getElementById('invoiceModal').classList.remove('hidden');
+        }
+
+        async function handleInvoiceSubmit(e) {
+            e.preventDefault();
+            const id = document.getElementById('invId').value || ('inv_' + Date.now());
+            const title = document.getElementById('invTitle').value;
+            const detail = document.getElementById('invDetail').value;
+            const amount = parseFloat(document.getElementById('invAmount').value) || 0;
+            const date = document.getElementById('invDate').value;
+            const sos = document.getElementById('invSos').checked;
+            const accountingSubmitted = document.getElementById('invAccountingSubmitted').checked;
+            const accountingDate = document.getElementById('invAccountingDate').value;
+            const receiverName = document.getElementById('invReceiverName').value;
+
+            const invoiceObj = {
+                id,
+                title,
+                detail,
+                amount,
+                date,
+                sos,
+                accountingSubmitted,
+                accountingDate: accountingSubmitted ? accountingDate : "",
+                receiverName: accountingSubmitted ? receiverName : ""
+            };
+
+            await setDoc(doc(db, "invoices", id), invoiceObj);
+            closeInvoiceModal();
+        }
+
+        async function deleteInvoice(id) {
+            if (!confirm("Bu faturayı silmek istediğinize emin misiniz?")) return;
+            await deleteDoc(doc(db, "invoices", id));
         }
 
         // ================= STOK TALEP (VİRMAN) MODÜLÜ SCRIPTS =================

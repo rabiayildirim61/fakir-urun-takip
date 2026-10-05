@@ -135,21 +135,33 @@ function buildHtml({ today, productTasks, upcoming, invoiceTasks }, panelUrl) {
   }
 
   if (productTasks.length) {
+    const TOTAL = TOP_FLOW.length + TSOFT.length + MARKETS.length;
+    const rows = productTasks
+      .map(({ p, mTop, mTsoft, mMarket }) => {
+        const left = mTop.length + mTsoft.length + mMarket.length;
+        const pct = Math.round(((TOTAL - left) / TOTAL) * 100);
+        const next = mTop[0] || mTsoft[0] || (mMarket[0] ? `${mMarket[0]} açılacak` : '');
+        return { p, left, pct, next };
+      })
+      .sort((a, b) => b.pct - a.pct);
+
+    const td = 'padding:7px 10px;border-bottom:1px solid #e2e8f0;font-size:13px;vertical-align:top';
     body += sec(
-      `📦 Tamamlanmamış Ürünler (${productTasks.length})`,
-      productTasks
-        .map(({ p, mTop, mTsoft, mMarket }) => {
-          const line = (label, arr) =>
-            arr.length ? `<div style="margin:2px 0"><span style="color:#64748b">${label}:</span> ${arr.map(esc).join(', ')}</div>` : '';
-          return `<div style="border:1px solid #e2e8f0;border-radius:8px;padding:10px 12px;margin-bottom:8px">
-            <div style="font-weight:bold;color:#0f172a">${esc(p.name)} <span style="color:#64748b;font-weight:normal">(${esc(p.sku)})</span></div>
-            <div style="font-size:13px;margin-top:4px">
-              ${line('Genel adımlar', mTop)}
-              ${line('T-Soft', mTsoft)}
-              ${line('Açılmayan pazaryerleri', mMarket)}
-            </div></div>`;
-        })
-        .join('')
+      `📦 Tamamlanmamış Ürünler (${rows.length})`,
+      `<table style="border-collapse:collapse;width:100%">
+        <tr style="background:#f1f5f9;text-align:left;font-size:12px;color:#475569">
+          <th style="padding:7px 10px">Ürün</th><th style="padding:7px 10px">Durum</th><th style="padding:7px 10px">Sıradaki adım</th>
+        </tr>
+        ${rows
+          .map(
+            (r) => `<tr>
+              <td style="${td}"><b>${esc(r.p.name)}</b><br><span style="color:#64748b">${esc(r.p.sku)}</span></td>
+              <td style="${td};white-space:nowrap">%${r.pct}<br><span style="color:#64748b">${r.left} adım kaldı</span></td>
+              <td style="${td}">${esc(r.next)}</td>
+            </tr>`
+          )
+          .join('')}
+      </table>`
     );
   }
 

@@ -178,7 +178,9 @@ async function listAllEmails() {
 module.exports = async (req, res) => {
   // Yetki kontrolü: Vercel Cron, CRON_SECRET tanımlıysa otomatik olarak Bearer başlığı gönderir.
   const secret = process.env.CRON_SECRET;
-  if (!secret || req.headers.authorization !== `Bearer ${secret}`) {
+  const okHeader = req.headers.authorization === `Bearer ${secret}`;
+  const okKey = req.query.key === secret; // tarayıcıdan test için: ?key=CRON_SECRET
+  if (!secret || (!okHeader && !okKey)) {
     return res.status(401).json({ error: 'Yetkisiz' });
   }
 

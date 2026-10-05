@@ -4,24 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>E-Ticaret Operasyon ve Koordinasyon Paneli</title>
-    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- SheetJS for Excel Reading in Stock Request Module -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        brand: {
-                            50: '#f0fdf4',
-                            100: '#dcfce7',
-                            500: '#22c55e',
-                            600: '#16a34a',
-                            700: '#15803d',
-                        }
+                        brand: { 50: '#f0fdf4', 100: '#dcfce7', 200: '#bbf7d0', 400: '#4ade80', 500: '#22c55e', 600: '#16a34a', 700: '#15803d', 900: '#14532d' }
                     }
                 }
             }
@@ -29,18 +20,21 @@
     </script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; height: 100vh; height: 100dvh; }
         .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 h-screen flex flex-col overflow-hidden">
+<body class="bg-slate-50 text-slate-800 flex flex-col overflow-hidden">
 
-    <!-- GİRİŞ EKRANI (AUTH OVERLAY) -->
-    <div id="loginOverlay" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-50 flex items-center justify-center hidden">
-        <div class="bg-white rounded-3xl w-full max-w-md p-8 shadow-2xl border border-slate-100 space-y-6">
+    <!-- BİLDİRİM (TOAST) ALANI -->
+    <div id="toastContainer" class="fixed bottom-5 right-5 z-[60] space-y-2 pointer-events-none"></div>
+
+    <!-- GİRİŞ EKRANI (varsayılan görünür; oturum doğrulanınca gizlenir) -->
+    <div id="loginOverlay" class="fixed inset-0 bg-slate-900/95 backdrop-blur-md z-50 flex items-center justify-center">
+        <div class="bg-white rounded-3xl w-full max-w-md p-8 shadow-2xl border border-slate-100 space-y-6 mx-4">
             <div class="text-center space-y-2">
                 <div class="w-14 h-14 bg-brand-500 text-white rounded-2xl mx-auto flex items-center justify-center shadow-lg text-2xl">
                     <i class="fa-solid fa-lock"></i>
@@ -75,7 +69,7 @@
     </div>
 
     <!-- ÜST HEADER -->
-    <header class="bg-slate-900 text-white shadow-md px-6 py-3 flex justify-between items-center z-10 flex-shrink-0">
+    <header class="bg-slate-900 text-white shadow-md px-4 sm:px-6 py-3 flex flex-wrap gap-3 justify-between items-center z-10 flex-shrink-0">
         <div class="flex items-center space-x-3 cursor-pointer" onclick="switchGlobalTab('ops'); goHome();">
             <div class="bg-brand-500 text-white p-2.5 rounded-xl shadow-lg flex items-center justify-center">
                 <i class="fa-solid fa-boxes-stacked text-xl"></i>
@@ -86,42 +80,33 @@
             </div>
         </div>
 
-        <!-- MODÜL GEÇİŞ SEKMELERİ -->
-        <div class="flex items-center space-x-2 bg-slate-800 p-1.5 rounded-xl border border-slate-700">
-            <button id="navBtnOps" onclick="switchGlobalTab('ops')" class="px-4 py-1.5 rounded-lg text-xs font-bold transition bg-brand-600 text-white shadow-sm flex items-center space-x-1.5">
-                <i class="fa-solid fa-clipboard-list"></i>
-                <span>Ürün Operasyonları</span>
+        <div class="flex items-center space-x-2 bg-slate-800 p-1.5 rounded-xl border border-slate-700 overflow-x-auto max-w-full">
+            <button id="navBtnOps" onclick="switchGlobalTab('ops')" class="whitespace-nowrap px-4 py-1.5 rounded-lg text-xs font-bold transition bg-brand-600 text-white shadow-sm flex items-center space-x-1.5">
+                <i class="fa-solid fa-clipboard-list"></i><span>Ürün Operasyonları</span>
             </button>
-            <button id="navBtnMatch" onclick="switchGlobalTab('match')" class="px-4 py-1.5 rounded-lg text-xs font-semibold transition text-slate-300 hover:text-white flex items-center space-x-1.5">
-                <i class="fa-solid fa-link"></i>
-                <span>Pazaryeri Eşleştirme</span>
+            <button id="navBtnMatch" onclick="switchGlobalTab('match')" class="whitespace-nowrap px-4 py-1.5 rounded-lg text-xs font-semibold transition text-slate-300 hover:text-white flex items-center space-x-1.5">
+                <i class="fa-solid fa-link"></i><span>Pazaryeri Eşleştirme</span>
             </button>
-            <button id="navBtnStock" onclick="switchGlobalTab('stock')" class="px-4 py-1.5 rounded-lg text-xs font-semibold transition text-slate-300 hover:text-white flex items-center space-x-1.5">
-                <i class="fa-solid fa-warehouse"></i>
-                <span>Stok Talep (Virman)</span>
+            <button id="navBtnStock" onclick="switchGlobalTab('stock')" class="whitespace-nowrap px-4 py-1.5 rounded-lg text-xs font-semibold transition text-slate-300 hover:text-white flex items-center space-x-1.5">
+                <i class="fa-solid fa-warehouse"></i><span>Stok Talep (Virman)</span>
             </button>
-            <button id="navBtnInvoices" onclick="switchGlobalTab('invoices')" class="px-4 py-1.5 rounded-lg text-xs font-semibold transition text-slate-300 hover:text-white flex items-center space-x-1.5">
-                <i class="fa-solid fa-file-invoice-dollar"></i>
-                <span>Faturalar</span>
+            <button id="navBtnInvoices" onclick="switchGlobalTab('invoices')" class="whitespace-nowrap px-4 py-1.5 rounded-lg text-xs font-semibold transition text-slate-300 hover:text-white flex items-center space-x-1.5">
+                <i class="fa-solid fa-file-invoice-dollar"></i><span>Faturalar</span>
             </button>
         </div>
 
-        <div class="flex items-center space-x-3">
+        <div class="flex items-center gap-2 flex-wrap">
             <button id="backToHomeBtn" onclick="goHome()" class="bg-slate-800 hover:bg-slate-700 text-white px-3.5 py-2 rounded-xl text-xs font-semibold transition shadow-sm hidden items-center space-x-2 border border-slate-700">
-                <i class="fa-solid fa-arrow-left"></i>
-                <span>Ürün Listesine Dön</span>
+                <i class="fa-solid fa-arrow-left"></i><span>Ürün Listesine Dön</span>
             </button>
             <button id="globalExcelBtn" onclick="exportToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-xl text-xs font-semibold transition shadow-sm flex items-center space-x-2">
-                <i class="fa-solid fa-file-excel"></i>
-                <span>Excel'e Aktar</span>
+                <i class="fa-solid fa-file-excel"></i><span>Excel'e Aktar</span>
             </button>
             <button id="globalNewProdBtn" onclick="openNewProductModal()" class="bg-brand-600 hover:bg-brand-700 text-white px-3.5 py-2 rounded-xl text-xs font-semibold transition shadow-sm flex items-center space-x-2">
-                <i class="fa-solid fa-plus"></i>
-                <span>Yeni Ürün</span>
+                <i class="fa-solid fa-plus"></i><span>Yeni Ürün</span>
             </button>
             <button onclick="handleLogout()" class="bg-red-600/80 hover:bg-red-600 text-white px-3.5 py-2 rounded-xl text-xs font-semibold transition shadow-sm flex items-center space-x-2 border border-red-500" title="Güvenli Çıkış Yap">
-                <i class="fa-solid fa-right-from-bracket"></i>
-                <span>Çıkış</span>
+                <i class="fa-solid fa-right-from-bracket"></i><span>Çıkış</span>
             </button>
         </div>
     </header>
@@ -131,27 +116,24 @@
 
         <!-- 1. MODÜL: ÜRÜN OPERASYONLARI -->
         <div id="moduleOps" class="flex-1 flex flex-col overflow-hidden relative w-full h-full">
-            <div id="homeView" class="flex-1 flex flex-col overflow-hidden bg-slate-50 p-6">
+            <div id="homeView" class="flex-1 flex flex-col overflow-hidden bg-slate-50 p-4 sm:p-6">
                 <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6 flex-shrink-0">
                     <div>
                         <h2 class="text-lg font-bold text-slate-800">Ürün Operasyon Takip Listesi</h2>
                         <p class="text-xs text-slate-500">Tüm ürünlerin genel durumunu, tarihlerini ve pazaryeri durumlarını buradan takip edebilirsiniz.</p>
                     </div>
                     <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto">
-                        <div class="relative">
-                            <select id="filterSelect" onchange="filterHomeTable()" class="bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-700 focus:outline-none focus:border-brand-500 transition shadow-sm cursor-pointer">
-                                <option value="all">Tüm Ürünler</option>
-                                <option value="missing_trendyol">Trendyol'da Açık Olmayanlar</option>
-                                <option value="missing_hepsiburada">Hepsiburada'da Açık Olmayanlar</option>
-                                <option value="missing_amazon">Amazon'da Açık Olmayanlar</option>
-                                <option value="missing_n11">N11'de Açık Olmayanlar</option>
-                                <option value="missing_beymen">Beymen'de Açık Olmayanlar</option>
-                                <option value="missing_idefix">İdefix'te Açık Olmayanlar</option>
-                                <option value="missing_pazarama">Pazarama'da Açık Olmayanlar</option>
-                                <option value="incomplete">Tamamlanmamış Ürünler (%100 Altı)</option>
-                            </select>
-                        </div>
-
+                        <select id="filterSelect" onchange="filterHomeTable()" class="bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-700 focus:outline-none focus:border-brand-500 transition shadow-sm cursor-pointer">
+                            <option value="all">Tüm Ürünler</option>
+                            <option value="missing_trendyol">Trendyol'da Açık Olmayanlar</option>
+                            <option value="missing_hepsiburada">Hepsiburada'da Açık Olmayanlar</option>
+                            <option value="missing_amazon">Amazon'da Açık Olmayanlar</option>
+                            <option value="missing_n11">N11'de Açık Olmayanlar</option>
+                            <option value="missing_beymen">Beymen'de Açık Olmayanlar</option>
+                            <option value="missing_idefix">İdefix'te Açık Olmayanlar</option>
+                            <option value="missing_pazarama">Pazarama'da Açık Olmayanlar</option>
+                            <option value="incomplete">Tamamlanmamış Ürünler (%100 Altı)</option>
+                        </select>
                         <div class="relative flex-1 sm:w-64">
                             <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-xs"></i>
                             <input type="text" id="homeSearchInput" oninput="filterHomeTable()" placeholder="Ürün adı veya kod ile ara..." class="w-full bg-white border border-slate-200 rounded-xl pl-9 pr-3 py-2 text-xs focus:outline-none focus:border-brand-500 transition shadow-sm">
@@ -162,7 +144,7 @@
 
                 <div class="flex-1 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
                     <div class="flex-1 overflow-auto custom-scrollbar">
-                        <table class="w-full text-left border-collapse">
+                        <table class="w-full text-left border-collapse min-w-[800px]">
                             <thead>
                                 <tr class="bg-slate-100/70 border-b border-slate-200 text-[11px] font-bold text-slate-600 uppercase tracking-wider sticky top-0 z-10">
                                     <th class="p-4">Ürün Kodu (SKU)</th>
@@ -175,9 +157,7 @@
                                     <th class="p-4 text-center">İşlem</th>
                                 </tr>
                             </thead>
-                            <tbody id="productTableBody" class="divide-y divide-slate-100 text-xs">
-                                <!-- Dinamik Tablo Satırları -->
-                            </tbody>
+                            <tbody id="productTableBody" class="divide-y divide-slate-100 text-xs"></tbody>
                         </table>
                     </div>
                 </div>
@@ -185,7 +165,7 @@
 
             <!-- DETAY EKRANI -->
             <div id="productDetailView" class="flex-1 flex flex-col overflow-hidden bg-slate-50/50 hidden">
-                <div class="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between flex-shrink-0">
+                <div class="bg-white border-b border-slate-200 px-4 sm:px-6 py-4 flex flex-wrap gap-3 items-center justify-between flex-shrink-0">
                     <div>
                         <div class="flex items-center space-x-2 mb-1">
                             <span id="detailProductSku" class="bg-brand-50 text-brand-700 text-xs font-bold px-2.5 py-0.5 rounded-md border border-brand-100">SKU</span>
@@ -209,19 +189,17 @@
                     </div>
                 </div>
 
-                <div class="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-6">
+                <div class="flex-1 overflow-y-auto custom-scrollbar p-4 sm:p-6 space-y-6">
                     <div class="bg-gradient-to-r from-slate-900 to-slate-800 rounded-2xl p-5 text-white shadow-lg space-y-4">
                         <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
                             <div>
                                 <h3 class="text-xs font-bold uppercase tracking-wider text-brand-400 mb-1 flex items-center space-x-2">
-                                    <i class="fa-solid fa-calendar-days"></i>
-                                    <span>Lojistik & Gümrük Takvimi</span>
+                                    <i class="fa-solid fa-calendar-days"></i><span>Lojistik & Gümrük Takvimi</span>
                                 </h3>
                                 <p class="text-xs text-slate-300">Gümrük geçiş tarihi, talep edilen stok miktarı ve kritik sevkiyat aşamaları.</p>
                             </div>
                             <button onclick="openLogisticsModal()" class="bg-brand-500 hover:bg-brand-600 text-white px-4 py-2 rounded-xl text-xs font-bold transition shadow flex items-center space-x-2">
-                                <i class="fa-solid fa-pen-to-square"></i>
-                                <span>Tarih & Stok Bilgilerini Güncelle</span>
+                                <i class="fa-solid fa-pen-to-square"></i><span>Tarih & Stok Bilgilerini Güncelle</span>
                             </button>
                         </div>
 
@@ -247,8 +225,7 @@
                         <div class="pt-3 border-t border-slate-700">
                             <div class="flex justify-between items-center mb-1.5">
                                 <label class="text-[11px] font-bold text-brand-400 uppercase tracking-wider flex items-center space-x-1.5">
-                                    <i class="fa-solid fa-note-sticky"></i>
-                                    <span>Operasyon / Gecikme Notu</span>
+                                    <i class="fa-solid fa-note-sticky"></i><span>Operasyon / Gecikme Notu</span>
                                 </label>
                                 <span class="text-[10px] text-slate-400 italic">Otomatik Kaydedilir</span>
                             </div>
@@ -259,17 +236,14 @@
                     <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
                         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                             <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center space-x-2">
-                                <i class="fa-solid fa-route text-brand-600"></i>
-                                <span>1. Genel Başlangıç ve Onay Adımları</span>
+                                <i class="fa-solid fa-route text-brand-600"></i><span>1. Genel Başlangıç ve Onay Adımları</span>
                             </h3>
-                            <div class="flex items-center space-x-2">
+                            <div class="flex items-center gap-2 flex-wrap">
                                 <button onclick="copyContentEmailTemplate()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-bold px-3.5 py-2 rounded-xl transition flex items-center space-x-2 shadow-sm">
-                                    <i class="fa-solid fa-copy text-xs"></i>
-                                    <span>İçerik Mailini Kopyala</span>
+                                    <i class="fa-solid fa-copy text-xs"></i><span>İçerik Mailini Kopyala</span>
                                 </button>
                                 <button onclick="copyStockEmailTemplate()" class="bg-amber-600 hover:bg-amber-700 text-white text-[11px] font-bold px-3.5 py-2 rounded-xl transition flex items-center space-x-2 shadow-sm">
-                                    <i class="fa-solid fa-envelope-open-text text-xs"></i>
-                                    <span>Stok Talep Maili</span>
+                                    <i class="fa-solid fa-envelope-open-text text-xs"></i><span>Stok Talep Maili</span>
                                 </button>
                             </div>
                         </div>
@@ -279,15 +253,13 @@
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex flex-col">
                             <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4 flex items-center space-x-2">
-                                <i class="fa-solid fa-laptop-code text-indigo-600"></i>
-                                <span>2. T-Soft Operasyon Adımları</span>
+                                <i class="fa-solid fa-laptop-code text-indigo-600"></i><span>2. T-Soft Operasyon Adımları</span>
                             </h3>
                             <div id="tsoftContainer" class="space-y-2.5 flex-1"></div>
                         </div>
                         <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex flex-col">
                             <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4 flex items-center space-x-2">
-                                <i class="fa-solid fa-store text-amber-600"></i>
-                                <span>3. Entegra & Pazaryerleri Takibi</span>
+                                <i class="fa-solid fa-store text-amber-600"></i><span>3. Entegra & Pazaryerleri Takibi</span>
                             </h3>
                             <div id="marketplacesContainer" class="space-y-3 flex-1"></div>
                         </div>
@@ -296,8 +268,7 @@
                     <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
                         <div class="flex items-center justify-between mb-3">
                             <h3 class="text-[11px] font-bold uppercase tracking-wider text-slate-400 flex items-center space-x-1.5">
-                                <i class="fa-solid fa-clock-rotate-left text-slate-500"></i>
-                                <span>Son İşlem Geçmişi (Aktivite Akışı)</span>
+                                <i class="fa-solid fa-clock-rotate-left text-slate-500"></i><span>Son İşlem Geçmişi (Aktivite Akışı)</span>
                             </h3>
                             <span class="text-[10px] text-slate-400">Son 5 Hareket</span>
                         </div>
@@ -312,15 +283,14 @@
             <iframe id="matchIframe" src="https://fakir-pazaryeri-eslestirme.vercel.app/" class="w-full h-full border-0"></iframe>
         </div>
 
-        <!-- 3. MODÜL: STOK TALEP (VİRMAN) MODÜLÜ -->
+        <!-- 3. MODÜL: STOK TALEP (VİRMAN) -->
         <div id="moduleStock" class="flex-1 flex flex-col overflow-hidden hidden w-full h-full bg-slate-50">
-            <div class="bg-slate-900 text-white px-6 py-4 flex flex-wrap gap-4 items-center justify-between flex-shrink-0">
+            <div class="bg-slate-900 text-white px-4 sm:px-6 py-4 flex flex-wrap gap-4 items-center justify-between flex-shrink-0">
                 <div>
                     <h2 class="text-base font-bold flex items-center space-x-2">
-                        <i class="fa-solid fa-warehouse text-brand-400"></i>
-                        <span>Haftalık Virman Talebi · F028 → F029</span>
+                        <i class="fa-solid fa-warehouse text-brand-400"></i><span>Haftalık Virman Talebi · F028 → F029</span>
                     </h2>
-                    <p class="text-[11px] text-slate-400">Excel dosyalarınızı yükleyin, haftalık talebi girin, mail taslağını tek tıkla kopyalayın.</p>
+                    <p class="text-[11px] text-slate-400">Excel dosyalarınızı yükleyin, haftalık talebi girin, mail taslağını tek tıkla kopyalayın. (Veriler bu tarayıcıda saklanır.)</p>
                 </div>
                 <div class="flex flex-wrap items-center gap-2">
                     <label class="bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl px-3 py-2 cursor-pointer text-xs font-medium flex items-center space-x-2 transition" id="upLabelTs">
@@ -341,8 +311,8 @@
                 </div>
             </div>
 
-            <div class="flex-1 grid grid-cols-1 xl:grid-cols-3 gap-6 p-6 overflow-hidden">
-                <div class="xl:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col overflow-hidden p-5 space-y-4">
+            <div class="flex-1 grid grid-cols-1 xl:grid-cols-3 gap-6 p-4 sm:p-6 overflow-auto xl:overflow-hidden">
+                <div class="xl:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col overflow-hidden p-5 space-y-4 min-h-[420px] xl:min-h-0">
                     <div class="flex flex-wrap items-center justify-between gap-3 flex-shrink-0">
                         <div class="flex flex-wrap items-center gap-3">
                             <div class="relative">
@@ -351,7 +321,7 @@
                             </div>
                             <label class="flex items-center space-x-2 text-xs font-medium text-slate-600 cursor-pointer">
                                 <input type="checkbox" id="chkF28" checked onchange="renderStockTable()" class="rounded border-slate-300 text-brand-600 focus:ring-brand-500">
-                                <span>Sadece F028 > 0</span>
+                                <span>Sadece F028 &gt; 0</span>
                             </label>
                             <label class="flex items-center space-x-2 text-xs font-medium text-slate-600 cursor-pointer">
                                 <input type="checkbox" id="chkFs" onchange="renderStockTable()" class="rounded border-slate-300 text-brand-600 focus:ring-brand-500">
@@ -359,7 +329,7 @@
                             </label>
                             <label class="flex items-center space-x-2 text-xs font-medium text-slate-600 cursor-pointer">
                                 <input type="checkbox" id="chkFl" onchange="renderStockTable()" class="rounded border-slate-300 text-brand-600 focus:ring-brand-500">
-                                <span>T-Soft stok < 10</span>
+                                <span>T-Soft stok &lt; 10</span>
                             </label>
                         </div>
                         <div class="flex items-center space-x-3">
@@ -395,23 +365,22 @@
                     </div>
                 </div>
 
-                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col overflow-hidden p-5 space-y-4">
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col overflow-hidden p-5 space-y-4 min-h-[420px] xl:min-h-0">
                     <div class="flex items-center justify-between flex-shrink-0">
                         <div class="flex items-center space-x-2">
                             <span class="text-xs font-bold text-slate-700 uppercase tracking-wider">Mail Taslağı</span>
                             <input type="text" id="mailWhoInput" value="Emre Bey" oninput="updateStockMailPreview()" class="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1 text-xs font-semibold text-slate-800 w-28 focus:outline-none focus:border-brand-500">
                         </div>
                         <button onclick="copyStockMailToClipboard()" class="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition shadow-sm flex items-center space-x-2">
-                            <i class="fa-solid fa-clipboard text-xs"></i>
-                            <span>Tabloyu Kopyala</span>
+                            <i class="fa-solid fa-clipboard text-xs"></i><span>Tabloyu Kopyala</span>
                         </button>
                     </div>
 
-                    <div id="stockMailWarning" class="text-[11px] font-medium text-red-500 h-4"></div>
+                    <div id="stockMailWarning" class="text-[11px] font-medium text-red-500 min-h-[1rem]"></div>
 
                     <div class="flex-1 bg-slate-50 border border-slate-200 rounded-xl p-4 overflow-y-auto custom-scrollbar" id="stockMailPreviewContainer">
                         <div style="font-family:Calibri,Arial,sans-serif;font-size:14px;color:#000">
-                            <p>Emre Bey merhaba,</p>
+                            <p id="stockMailGreeting">Emre Bey merhaba,</p>
                             <p>Aşağıdaki stokların f029 deposuna virman yapılmasını rica ederim.</p>
                             <table style="border-collapse:collapse;font-family:Calibri,Arial,sans-serif;font-size:14px;width:100%;margin-top:10px;margin-bottom:10px;">
                                 <thead>
@@ -432,26 +401,30 @@
             </div>
         </div>
 
-        <!-- 4. MODÜL: FATURALAR YÖNETİM MODÜLÜ -->
-        <div id="moduleInvoices" class="flex-1 flex flex-col overflow-hidden hidden w-full h-full bg-slate-50 p-6">
+        <!-- 4. MODÜL: FATURALAR -->
+        <div id="moduleInvoices" class="flex-1 flex flex-col overflow-hidden hidden w-full h-full bg-slate-50 p-4 sm:p-6">
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 flex-shrink-0">
                 <div>
                     <h2 class="text-lg font-bold text-slate-800 flex items-center space-x-2">
-                        <i class="fa-solid fa-file-invoice-dollar text-brand-600"></i>
-                        <span>Fatura Yönetimi ve Takip Paneli</span>
+                        <i class="fa-solid fa-file-invoice-dollar text-brand-600"></i><span>Fatura Yönetimi ve Takip Paneli</span>
                     </h2>
                     <p class="text-xs text-slate-500">Operasyonel faturalarınızı, SOS taleplerini ve muhasebe teslim süreçlerini buradan yönetin.</p>
                 </div>
-                <button onclick="openInvoiceModal()" class="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2.5 rounded-xl text-xs font-bold transition shadow-sm flex items-center space-x-2">
-                    <i class="fa-solid fa-plus"></i>
-                    <span>Yeni Fatura Ekle</span>
-                </button>
+                <div class="flex items-center gap-3 flex-wrap">
+                    <select id="invoiceFilter" onchange="renderInvoicesTable()" class="bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-700 focus:outline-none focus:border-brand-500 shadow-sm cursor-pointer">
+                        <option value="all">Tüm Faturalar</option>
+                        <option value="undelivered">Muhasebeye Teslim Edilmeyenler</option>
+                        <option value="nosos">SOS Açılmayanlar</option>
+                    </select>
+                    <button onclick="openInvoiceModal()" class="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2.5 rounded-xl text-xs font-bold transition shadow-sm flex items-center space-x-2">
+                        <i class="fa-solid fa-plus"></i><span>Yeni Fatura Ekle</span>
+                    </button>
+                </div>
             </div>
 
-            <!-- Fatura Tablosu -->
             <div class="flex-1 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
                 <div class="flex-1 overflow-auto custom-scrollbar">
-                    <table class="w-full text-left border-collapse">
+                    <table class="w-full text-left border-collapse min-w-[900px]">
                         <thead>
                             <tr class="bg-slate-100/80 border-b border-slate-200 text-[11px] font-bold text-slate-600 uppercase tracking-wider sticky top-0 z-10">
                                 <th class="p-4">Fatura İsmi</th>
@@ -464,29 +437,24 @@
                                 <th class="p-4 text-center">İşlem</th>
                             </tr>
                         </thead>
-                        <tbody id="invoiceTableBody" class="divide-y divide-slate-100 text-xs">
-                            <!-- Dinamik Fatura Satırları -->
-                        </tbody>
+                        <tbody id="invoiceTableBody" class="divide-y divide-slate-100 text-xs"></tbody>
                     </table>
                 </div>
             </div>
         </div>
-
     </div>
 
     <!-- YENİ ÜRÜN MODALI -->
-    <div id="productModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden">
-        <div class="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl border border-slate-100">
+    <div id="productModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-40 flex items-center justify-center hidden">
+        <div class="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl border border-slate-100 mx-4">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-base font-bold text-slate-800">Yeni Ürün Ekle</h3>
-                <button onclick="closeNewProductModal()" class="text-slate-400 hover:text-slate-600">
-                    <i class="fa-solid fa-xmark text-lg"></i>
-                </button>
+                <button onclick="closeNewProductModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
             <form id="productForm" onsubmit="handleProductSubmit(event)" class="space-y-4">
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1">Ürün Adı</label>
-                    <input type="text" id="modalName" required placeholder="Örn: 41005899 Auria IPL Lazer" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-brand-500">
+                    <input type="text" id="modalName" required placeholder="Örn: Auria IPL Lazer" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-brand-500">
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1">Ürün Kodu (SKU)</label>
@@ -504,14 +472,12 @@
         </div>
     </div>
 
-    <!-- LOJİSTİK VE TAKVİM GÜNCELLEME MODALI -->
-    <div id="logisticsModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden">
-        <div class="bg-white rounded-2xl w-full max-w-lg p-6 shadow-2xl border border-slate-100">
+    <!-- LOJİSTİK MODALI -->
+    <div id="logisticsModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-40 flex items-center justify-center hidden">
+        <div class="bg-white rounded-2xl w-full max-w-lg p-6 shadow-2xl border border-slate-100 mx-4">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-base font-bold text-slate-800">Lojistik, Stok ve Takvim Bilgileri</h3>
-                <button onclick="closeLogisticsModal()" class="text-slate-400 hover:text-slate-600">
-                    <i class="fa-solid fa-xmark text-lg"></i>
-                </button>
+                <button onclick="closeLogisticsModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
             <form id="logisticsForm" onsubmit="handleLogisticsSubmit(event)" class="space-y-4">
                 <div>
@@ -540,14 +506,12 @@
         </div>
     </div>
 
-    <!-- FATURA EKLEME / DÜZENLEME MODALI -->
-    <div id="invoiceModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden">
-        <div class="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl border border-slate-100">
+    <!-- FATURA MODALI -->
+    <div id="invoiceModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-40 flex items-center justify-center hidden">
+        <div class="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl border border-slate-100 mx-4 max-h-[95vh] overflow-y-auto">
             <div class="flex justify-between items-center mb-4">
                 <h3 id="invoiceModalTitle" class="text-base font-bold text-slate-800">Yeni Fatura Ekle</h3>
-                <button onclick="closeInvoiceModal()" class="text-slate-400 hover:text-slate-600">
-                    <i class="fa-solid fa-xmark text-lg"></i>
-                </button>
+                <button onclick="closeInvoiceModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
             <form id="invoiceForm" onsubmit="handleInvoiceSubmit(event)" class="space-y-4">
                 <input type="hidden" id="invId">
@@ -562,14 +526,14 @@
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 mb-1">Tutar (TL)</label>
-                        <input type="number" step="0.01" id="invAmount" required placeholder="0.00" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-brand-500">
+                        <input type="number" step="0.01" min="0" id="invAmount" required placeholder="0.00" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-brand-500">
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 mb-1">Fatura Tarihi</label>
                         <input type="date" id="invDate" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-brand-500">
                     </div>
                 </div>
-                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2">
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
                     <label class="flex items-center space-x-2 text-xs font-medium text-slate-700 cursor-pointer">
                         <input type="checkbox" id="invSos" class="rounded border-slate-300 text-brand-600 focus:ring-brand-500">
                         <span>SOS Talebi Açıldı mı?</span>
@@ -599,10 +563,9 @@
         </div>
     </div>
 
-    <!-- FIREBASE VE UYGULAMA MANTIĞI -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
-        import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+        import { getFirestore, collection, doc, setDoc, updateDoc, deleteDoc, onSnapshot, arrayUnion } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
         import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
 
         const firebaseConfig = {
@@ -618,6 +581,29 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
+
+        // ---------- Yardımcılar ----------
+        const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+        function toast(msg, type = 'ok') {
+            const box = document.getElementById('toastContainer');
+            const el = document.createElement('div');
+            const color = type === 'error' ? 'bg-red-600' : type === 'warn' ? 'bg-amber-600' : 'bg-slate-900';
+            el.className = `${color} text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-lg max-w-sm transition-opacity duration-300`;
+            el.textContent = msg;
+            box.appendChild(el);
+            setTimeout(() => { el.style.opacity = '0'; setTimeout(() => el.remove(), 300); }, type === 'error' ? 5000 : 2500);
+        }
+
+        function nowStamp() {
+            const now = new Date();
+            return { now, time: `${now.toLocaleDateString('tr-TR')} ${now.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}` };
+        }
+
+        function logEntry(text) {
+            const { now, time } = nowStamp();
+            return { text, time, ts: now.getTime(), user: auth.currentUser?.email || '' };
+        }
 
         const topFlowSteps = [
             "Yeni Ürün Bilgisi Geldi",
@@ -656,55 +642,30 @@
         let invoices = [];
         let currentProductId = null;
         let noteTimeout = null;
+        let unsubProducts = null;
+        let unsubInvoices = null;
+        let activeTab = 'ops';
 
-        // Global functions binding
-        window.filterHomeTable = filterHomeTable;
-        window.openNewProductModal = openNewProductModal;
-        window.closeNewProductModal = closeNewProductModal;
-        window.handleProductSubmit = handleProductSubmit;
-        window.openLogisticsModal = openLogisticsModal;
-        window.closeLogisticsModal = closeLogisticsModal;
-        window.handleLogisticsSubmit = handleLogisticsSubmit;
-        window.saveProductNote = saveProductNote;
-        window.deleteCurrentProduct = deleteCurrentProduct;
-        window.exportToExcel = exportToExcel;
-        window.copyContentEmailTemplate = copyContentEmailTemplate;
-        window.copyStockEmailTemplate = copyStockEmailTemplate;
-        window.toggleTopFlow = toggleTopFlow;
-        window.toggleTsoft = toggleTsoft;
-        window.toggleMarketplace = toggleMarketplace;
-        window.selectProduct = selectProduct;
-        window.goHome = goHome;
-        window.switchGlobalTab = switchGlobalTab;
-        window.handleLogin = handleLogin;
-        window.handleLogout = handleLogout;
+        // ---------- Global bağlamalar ----------
+        Object.assign(window, {
+            filterHomeTable, openNewProductModal, closeNewProductModal, handleProductSubmit,
+            openLogisticsModal, closeLogisticsModal, handleLogisticsSubmit, saveProductNote,
+            deleteCurrentProduct, exportToExcel, copyContentEmailTemplate, copyStockEmailTemplate,
+            toggleTopFlow, toggleTsoft, toggleMarketplace, selectProduct, goHome, switchGlobalTab,
+            handleLogin, handleLogout,
+            openInvoiceModal, closeInvoiceModal, handleInvoiceSubmit, toggleAccountingDateField, renderInvoicesTable,
+            handleStockUpload, renderStockTable, clearStockDemands, updateStockMailPreview, copyStockMailToClipboard
+        });
 
-        // Fatura Modülü Global Fonksiyonları
-        window.openInvoiceModal = openInvoiceModal;
-        window.closeInvoiceModal = closeInvoiceModal;
-        window.handleInvoiceSubmit = handleInvoiceSubmit;
-        window.editInvoice = editInvoice;
-        window.deleteInvoice = deleteInvoice;
-        window.toggleAccountingDateField = toggleAccountingDateField;
-
-        // Stok Talep Modülü Global Fonksiyonları
-        window.handleStockUpload = handleStockUpload;
-        window.renderStockTable = renderStockTable;
-        window.clearStockDemands = clearStockDemands;
-        window.updateStockMailPreview = updateStockMailPreview;
-        window.copyStockMailToClipboard = copyStockMailToClipboard;
-
-        // Stok Talep Veri Yapıları
-        const stockData = { ts: null, st: null, sl: null };
-        const stockDemands = {}; 
-        let stockRows = [];
-
+        // ---------- Kimlik doğrulama ----------
         onAuthStateChanged(auth, (user) => {
             const overlay = document.getElementById('loginOverlay');
             if (user) {
                 overlay.classList.add('hidden');
+                startListeners();
             } else {
                 overlay.classList.remove('hidden');
+                stopListeners();
             }
         });
 
@@ -714,9 +675,9 @@
             const password = document.getElementById('loginPassword').value;
             const errEl = document.getElementById('loginError');
             errEl.classList.add('hidden');
-
             try {
                 await signInWithEmailAndPassword(auth, email, password);
+                document.getElementById('loginPassword').value = '';
             } catch (err) {
                 errEl.textContent = "Giriş başarısız: E-posta veya şifre hatalı.";
                 errEl.classList.remove('hidden');
@@ -729,104 +690,81 @@
             }
         }
 
-        function switchGlobalTab(tabName) {
-            const modOps = document.getElementById('moduleOps');
-            const modMatch = document.getElementById('moduleMatch');
-            const modStock = document.getElementById('moduleStock');
-            const modInvoices = document.getElementById('moduleInvoices');
-            const btnOps = document.getElementById('navBtnOps');
-            const btnMatch = document.getElementById('navBtnMatch');
-            const btnStock = document.getElementById('navBtnStock');
-            const btnInvoices = document.getElementById('navBtnInvoices');
-            const backBtn = document.getElementById('backToHomeBtn');
-            const excelBtn = document.getElementById('globalExcelBtn');
-            const newProdBtn = document.getElementById('globalNewProdBtn');
-
-            modOps.classList.add('hidden');
-            modMatch.classList.add('hidden');
-            modStock.classList.add('hidden');
-            modInvoices.classList.add('hidden');
-            btnOps.className = "px-4 py-1.5 rounded-lg text-xs font-semibold transition text-slate-300 hover:text-white flex items-center space-x-1.5";
-            btnMatch.className = "px-4 py-1.5 rounded-lg text-xs font-semibold transition text-slate-300 hover:text-white flex items-center space-x-1.5";
-            btnStock.className = "px-4 py-1.5 rounded-lg text-xs font-semibold transition text-slate-300 hover:text-white flex items-center space-x-1.5";
-            btnInvoices.className = "px-4 py-1.5 rounded-lg text-xs font-semibold transition text-slate-300 hover:text-white flex items-center space-x-1.5";
-
-            if (tabName === 'ops') {
-                modOps.classList.remove('hidden');
-                btnOps.className = "px-4 py-1.5 rounded-lg text-xs font-bold transition bg-brand-600 text-white shadow-sm flex items-center space-x-1.5";
-                excelBtn.classList.remove('hidden');
-                newProdBtn.classList.remove('hidden');
-            } else if (tabName === 'match') {
-                modMatch.classList.remove('hidden');
-                btnMatch.className = "px-4 py-1.5 rounded-lg text-xs font-bold transition bg-brand-600 text-white shadow-sm flex items-center space-x-1.5";
-                backBtn.classList.remove('flex');
-                backBtn.classList.add('hidden');
-                excelBtn.classList.add('hidden');
-                newProdBtn.classList.add('hidden');
-            } else if (tabName === 'stock') {
-                modStock.classList.remove('hidden');
-                btnStock.className = "px-4 py-1.5 rounded-lg text-xs font-bold transition bg-brand-600 text-white shadow-sm flex items-center space-x-1.5";
-                backBtn.classList.remove('flex');
-                backBtn.classList.add('hidden');
-                excelBtn.classList.add('hidden');
-                newProdBtn.classList.add('hidden');
-            } else if (tabName === 'invoices') {
-                modInvoices.classList.remove('hidden');
-                btnInvoices.className = "px-4 py-1.5 rounded-lg text-xs font-bold transition bg-brand-600 text-white shadow-sm flex items-center space-x-1.5";
-                backBtn.classList.remove('flex');
-                backBtn.classList.add('hidden');
-                excelBtn.classList.add('hidden');
-                newProdBtn.classList.add('hidden');
+        // ---------- Canlı veri dinleyicileri (yalnızca giriş yapılmışken) ----------
+        function startListeners() {
+            if (!unsubProducts) {
+                unsubProducts = onSnapshot(collection(db, "products"), (snapshot) => {
+                    products = snapshot.docs.map(d => ({ ...d.data(), id: d.id }));
+                    if (currentProductId && !products.some(p => p.id === currentProductId)) {
+                        goHome();
+                        return;
+                    }
+                    filterHomeTable();
+                    if (currentProductId) renderProductDetails();
+                }, (err) => {
+                    console.error(err);
+                    toast("Ürünler okunamadı: " + (err.code || err.message), 'error');
+                });
+            }
+            if (!unsubInvoices) {
+                unsubInvoices = onSnapshot(collection(db, "invoices"), (snapshot) => {
+                    invoices = snapshot.docs.map(d => ({ ...d.data(), id: d.id }));
+                    renderInvoicesTable();
+                }, (err) => {
+                    console.error(err);
+                    toast("Faturalar okunamadı: " + (err.code || err.message), 'error');
+                });
             }
         }
 
-        // Live Products Sync
-        onSnapshot(collection(db, "products"), (snapshot) => {
+        function stopListeners() {
+            if (unsubProducts) { unsubProducts(); unsubProducts = null; }
+            if (unsubInvoices) { unsubInvoices(); unsubInvoices = null; }
             products = [];
-            snapshot.forEach((docSnap) => {
-                products.push({ id: docSnap.id, ...docSnap.data() });
-            });
-
-            if (products.length === 0) {
-                const defaultProd = {
-                    id: 'prod_auria_41005899',
-                    name: 'Auria IPL Lazer Epilasyon Cihazı',
-                    sku: '41005899',
-                    category: 'Kişisel Bakım',
-                    topFlow: {},
-                    tsoft: {},
-                    marketplaces: {},
-                    logistics: { stockQty: "", customsDate: "", warehouseDate: "", launchDate: "", note: "Auria IPL Lazer web satışa hazırlık süreci." },
-                    logs: [{ text: "Auria IPL Lazer sisteme otomatik tanımlandı", time: "01.10.2026 15:00" }]
-                };
-                setDoc(doc(db, "products", defaultProd.id), defaultProd);
-                return;
-            }
-
-            filterHomeTable();
-            if (currentProductId) {
-                renderProductDetails();
-            }
-        });
-
-        // Live Invoices Sync
-        onSnapshot(collection(db, "invoices"), (snapshot) => {
             invoices = [];
-            snapshot.forEach((docSnap) => {
-                invoices.push({ id: docSnap.id, ...docSnap.data() });
-            });
+            currentProductId = null;
+            goHome();
             renderInvoicesTable();
-        });
+        }
 
-        async function saveProductToFirestore(product, actionDesc = "") {
-            if (actionDesc) {
-                if (!product.logs) product.logs = [];
-                const now = new Date();
-                const timeStr = `${now.toLocaleDateString('tr-TR')} ${now.toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'})}`;
-                product.logs.unshift({ text: actionDesc, time: timeStr });
-                if (product.logs.length > 5) product.logs.pop();
+        // ---------- Sekmeler ----------
+        function switchGlobalTab(tabName) {
+            activeTab = tabName;
+            const tabs = {
+                ops: ['moduleOps', 'navBtnOps'],
+                match: ['moduleMatch', 'navBtnMatch'],
+                stock: ['moduleStock', 'navBtnStock'],
+                invoices: ['moduleInvoices', 'navBtnInvoices']
+            };
+            const inactive = "whitespace-nowrap px-4 py-1.5 rounded-lg text-xs font-semibold transition text-slate-300 hover:text-white flex items-center space-x-1.5";
+            const active = "whitespace-nowrap px-4 py-1.5 rounded-lg text-xs font-bold transition bg-brand-600 text-white shadow-sm flex items-center space-x-1.5";
+            for (const [name, [modId, btnId]] of Object.entries(tabs)) {
+                document.getElementById(modId).classList.toggle('hidden', name !== tabName);
+                document.getElementById(btnId).className = name === tabName ? active : inactive;
             }
-            await setDoc(doc(db, "products", product.id), product);
+            const isOps = tabName === 'ops';
+            document.getElementById('globalExcelBtn').classList.toggle('hidden', !isOps);
+            document.getElementById('globalNewProdBtn').classList.toggle('hidden', !isOps);
+            const backBtn = document.getElementById('backToHomeBtn');
+            const showBack = isOps && !!currentProductId;
+            backBtn.classList.toggle('hidden', !showBack);
+            backBtn.classList.toggle('flex', showBack);
+        }
+
+        // ---------- Ürün listesi ----------
+        function calculateProgress(p) {
+            const total = topFlowSteps.length + tsoftSteps.length + marketplaces.length;
+            let completed = 0;
+            topFlowSteps.forEach((_, i) => { if (p.topFlow?.[i]) completed++; });
+            tsoftSteps.forEach((_, i) => { if (p.tsoft?.[i]) completed++; });
+            marketplaces.forEach((_, i) => { if (p.marketplaces?.[i]) completed++; });
+            return Math.round((completed / total) * 100);
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return "";
+            const parts = dateStr.split('-');
+            return parts.length === 3 ? `${parts[2]}.${parts[1]}.${parts[0]}` : dateStr;
         }
 
         function filterHomeTable() {
@@ -834,30 +772,19 @@
             const filterType = document.getElementById('filterSelect').value;
             const tableBody = document.getElementById('productTableBody');
             tableBody.innerHTML = "";
-            
-            const filtered = products.filter(p => {
-                const matchesQuery = p.name.toLowerCase().includes(query) || p.sku.toLowerCase().includes(query);
-                if (!matchesQuery) return false;
 
+            const mIndexMap = {
+                missing_trendyol: 0, missing_hepsiburada: 1, missing_amazon: 2, missing_n11: 3,
+                missing_beymen: 4, missing_idefix: 5, missing_pazarama: 6
+            };
+
+            const filtered = products.filter(p => {
+                const name = String(p.name || '').toLowerCase();
+                const sku = String(p.sku || '').toLowerCase();
+                if (!(name.includes(query) || sku.includes(query))) return false;
                 if (filterType === 'all') return true;
                 if (filterType === 'incomplete') return calculateProgress(p) < 100;
-
-                const mIndexMap = {
-                    'missing_trendyol': 0,
-                    'missing_hepsiburada': 1,
-                    'missing_amazon': 2,
-                    'missing_n11': 3,
-                    'missing_beymen': 4,
-                    'missing_idefix': 5,
-                    'missing_pazarama': 6
-                };
-
-                if (filterType in mIndexMap) {
-                    const idx = mIndexMap[filterType];
-                    const isOpen = p.marketplaces && p.marketplaces[idx];
-                    return !isOpen;
-                }
-
+                if (filterType in mIndexMap) return !p.marketplaces?.[mIndexMap[filterType]];
                 return true;
             });
 
@@ -872,52 +799,34 @@
                 const progress = calculateProgress(p);
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-slate-50/80 transition cursor-pointer border-b border-slate-100";
-                tr.onclick = () => selectProduct(p.id);
-
+                tr.addEventListener('click', () => selectProduct(p.id));
                 tr.innerHTML = `
-                    <td class="p-4 font-bold text-slate-700">
-                        <span class="bg-slate-100 border border-slate-200 px-2.5 py-1 rounded-md text-[11px]">${p.sku}</span>
-                    </td>
-                    <td class="p-4 font-bold text-slate-900">${p.name}</td>
-                    <td class="p-4 text-slate-500">${p.category}</td>
-                    <td class="p-4 font-semibold text-brand-700">${p.logistics?.stockQty || "-"}</td>
-                    <td class="p-4 text-slate-600">${p.logistics?.customsDate ? formatDate(p.logistics.customsDate) : "<span class='text-slate-300'>Girilmedi</span>"}</td>
-                    <td class="p-4 text-slate-600">${p.logistics?.warehouseDate ? formatDate(p.logistics.warehouseDate) : "<span class='text-slate-300'>Girilmedi</span>"}</td>
+                    <td class="p-4 font-bold text-slate-700"><span class="bg-slate-100 border border-slate-200 px-2.5 py-1 rounded-md text-[11px]">${esc(p.sku)}</span></td>
+                    <td class="p-4 font-bold text-slate-900">${esc(p.name)}</td>
+                    <td class="p-4 text-slate-500">${esc(p.category)}</td>
+                    <td class="p-4 font-semibold text-brand-700">${esc(p.logistics?.stockQty || "-")}</td>
+                    <td class="p-4 text-slate-600">${p.logistics?.customsDate ? esc(formatDate(p.logistics.customsDate)) : "<span class='text-slate-300'>Girilmedi</span>"}</td>
+                    <td class="p-4 text-slate-600">${p.logistics?.warehouseDate ? esc(formatDate(p.logistics.warehouseDate)) : "<span class='text-slate-300'>Girilmedi</span>"}</td>
                     <td class="p-4">
                         <div class="flex items-center space-x-2">
-                            <div class="w-24 bg-slate-100 h-2 rounded-full overflow-hidden">
-                                <div class="bg-brand-500 h-full rounded-full" style="width: ${progress}%"></div>
-                            </div>
+                            <div class="w-24 bg-slate-100 h-2 rounded-full overflow-hidden"><div class="bg-brand-500 h-full rounded-full" style="width: ${progress}%"></div></div>
                             <span class="font-bold text-slate-700 text-[11px]">%${progress}</span>
                         </div>
                     </td>
                     <td class="p-4 text-center">
-                        <button onclick="event.stopPropagation(); selectProduct('${p.id}')" class="bg-slate-900 hover:bg-brand-600 text-white px-3 py-1.5 rounded-lg text-[11px] font-bold transition shadow-sm">
-                            İncele <i class="fa-solid fa-arrow-right ml-1"></i>
-                        </button>
-                    </td>
-                `;
+                        <span class="bg-slate-900 text-white px-3 py-1.5 rounded-lg text-[11px] font-bold shadow-sm inline-block">İncele <i class="fa-solid fa-arrow-right ml-1"></i></span>
+                    </td>`;
                 tableBody.appendChild(tr);
             });
-        }
-
-        function calculateProgress(p) {
-            let total = topFlowSteps.length + tsoftSteps.length + marketplaces.length;
-            let completed = 0;
-
-            topFlowSteps.forEach((_, idx) => { if (p.topFlow && p.topFlow[idx]) completed++; });
-            tsoftSteps.forEach((_, idx) => { if (p.tsoft && p.tsoft[idx]) completed++; });
-            marketplaces.forEach((_, idx) => { if (p.marketplaces && p.marketplaces[idx]) completed++; });
-
-            return Math.round((completed / total) * 100);
         }
 
         function selectProduct(id) {
             currentProductId = id;
             document.getElementById('homeView').classList.add('hidden');
             document.getElementById('productDetailView').classList.remove('hidden');
-            document.getElementById('backToHomeBtn').classList.remove('hidden');
-            document.getElementById('backToHomeBtn').classList.add('flex');
+            const backBtn = document.getElementById('backToHomeBtn');
+            backBtn.classList.remove('hidden');
+            backBtn.classList.add('flex');
             renderProductDetails();
         }
 
@@ -925,28 +834,28 @@
             currentProductId = null;
             document.getElementById('productDetailView').classList.add('hidden');
             document.getElementById('homeView').classList.remove('hidden');
-            document.getElementById('backToHomeBtn').classList.remove('flex');
-            document.getElementById('backToHomeBtn').classList.add('hidden');
+            const backBtn = document.getElementById('backToHomeBtn');
+            backBtn.classList.remove('flex');
+            backBtn.classList.add('hidden');
             filterHomeTable();
         }
 
+        // ---------- Ürün detayı ----------
         function renderProductDetails() {
             const p = products.find(x => x.id === currentProductId);
             if (!p) return;
 
-            document.getElementById('detailProductName').textContent = p.name;
-            document.getElementById('detailProductSku').textContent = p.sku;
-            document.getElementById('detailProductCat').textContent = p.category;
+            document.getElementById('detailProductName').textContent = p.name || '';
+            document.getElementById('detailProductSku').textContent = p.sku || '';
+            document.getElementById('detailProductCat').textContent = p.category || '';
 
             document.getElementById('statStockQty').textContent = p.logistics?.stockQty || "Belirtilmedi";
             document.getElementById('statCustomsDate').textContent = p.logistics?.customsDate ? formatDate(p.logistics.customsDate) : "Girilmedi";
             document.getElementById('statWarehouseDate').textContent = p.logistics?.warehouseDate ? formatDate(p.logistics.warehouseDate) : "Girilmedi";
             document.getElementById('statLaunchDate').textContent = p.logistics?.launchDate ? formatDate(p.logistics.launchDate) : "Girilmedi";
-            
+
             const noteEl = document.getElementById('productNote');
-            if (document.activeElement !== noteEl) {
-                noteEl.value = p.logistics?.note || "";
-            }
+            if (document.activeElement !== noteEl) noteEl.value = p.logistics?.note || "";
 
             const progress = calculateProgress(p);
             document.getElementById('detailProgressBar').style.width = `${progress}%`;
@@ -955,332 +864,294 @@
             const topContainer = document.getElementById('topFlowContainer');
             topContainer.innerHTML = "";
             topFlowSteps.forEach((step, idx) => {
-                const checked = p.topFlow && p.topFlow[idx] ? true : false;
+                const checked = !!p.topFlow?.[idx];
                 const el = document.createElement('label');
                 el.className = `flex items-center space-x-3 p-3 rounded-xl border transition cursor-pointer ${checked ? 'bg-brand-50/60 border-brand-200 text-brand-900' : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100/70'}`;
-                el.innerHTML = `
-                    <input type="checkbox" ${checked ? 'checked' : ''} onchange="toggleTopFlow(${idx})" class="w-4 h-4 text-brand-600 rounded border-slate-300 focus:ring-brand-500">
-                    <span class="text-xs font-semibold">${step}</span>
-                `;
+                el.innerHTML = `<input type="checkbox" ${checked ? 'checked' : ''} onchange="toggleTopFlow(${idx})" class="w-4 h-4 text-brand-600 rounded border-slate-300 focus:ring-brand-500"><span class="text-xs font-semibold">${esc(step)}</span>`;
                 topContainer.appendChild(el);
             });
 
             const tsoftContainer = document.getElementById('tsoftContainer');
             tsoftContainer.innerHTML = "";
             tsoftSteps.forEach((stepObj, idx) => {
-                const checked = p.tsoft && p.tsoft[idx] ? true : false;
+                const checked = !!p.tsoft?.[idx];
                 const el = document.createElement('div');
                 el.className = `flex items-center justify-between p-3 rounded-xl border transition ${checked ? 'bg-indigo-50/60 border-indigo-200 text-indigo-900' : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100/70'}`;
-                
-                let toolButtonHtml = '';
-                if (stepObj.tool) {
-                    toolButtonHtml = `
-                        <a href="${stepObj.url}" target="_blank" onclick="event.stopPropagation()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg transition flex items-center space-x-1 shadow-sm">
-                            <i class="fa-solid fa-external-link-alt text-[9px]"></i>
-                            <span>${stepObj.tool}</span>
-                        </a>
-                    `;
-                }
-
+                const toolButtonHtml = stepObj.tool ? `
+                    <a href="${esc(stepObj.url)}" target="_blank" rel="noopener" class="bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg transition flex items-center space-x-1 shadow-sm">
+                        <i class="fa-solid fa-external-link-alt text-[9px]"></i><span>${esc(stepObj.tool)}</span>
+                    </a>` : '';
                 el.innerHTML = `
                     <label class="flex items-center space-x-3 flex-1 cursor-pointer">
                         <input type="checkbox" ${checked ? 'checked' : ''} onchange="toggleTsoft(${idx})" class="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500">
-                        <span class="text-xs font-semibold">${stepObj.name}</span>
-                    </label>
-                    ${toolButtonHtml}
-                `;
+                        <span class="text-xs font-semibold">${esc(stepObj.name)}</span>
+                    </label>${toolButtonHtml}`;
                 tsoftContainer.appendChild(el);
             });
 
             const marketContainer = document.getElementById('marketplacesContainer');
             marketContainer.innerHTML = "";
             marketplaces.forEach((m, idx) => {
-                const checked = p.marketplaces && p.marketplaces[idx] ? true : false;
-                const el = document.createElement('div');
+                const checked = !!p.marketplaces?.[idx];
+                const el = document.createElement('label');
                 el.className = `flex items-center justify-between p-3 rounded-xl border transition cursor-pointer ${checked ? 'bg-amber-50/60 border-amber-200' : 'bg-slate-50 border-slate-200 hover:bg-slate-100/70'}`;
-                el.onclick = (e) => {
-                    if(e.target.tagName !== 'INPUT') {
-                        const checkbox = el.querySelector('input');
-                        checkbox.checked = !checkbox.checked;
-                        toggleMarketplace(idx);
-                    }
-                };
                 el.innerHTML = `
                     <div class="flex items-center space-x-3">
                         <i class="fa-solid ${m.icon} ${m.color} text-base w-5 text-center"></i>
-                        <span class="text-xs font-bold text-slate-800">${m.name} Açıldı mı?</span>
+                        <span class="text-xs font-bold text-slate-800">${esc(m.name)} Açıldı mı?</span>
                     </div>
-                    <input type="checkbox" ${checked ? 'checked' : ''} onchange="toggleMarketplace(${idx})" class="w-4 h-4 text-amber-600 rounded border-slate-300 focus:ring-amber-500">
-                `;
+                    <input type="checkbox" ${checked ? 'checked' : ''} onchange="toggleMarketplace(${idx})" class="w-4 h-4 text-amber-600 rounded border-slate-300 focus:ring-amber-500">`;
                 marketContainer.appendChild(el);
             });
 
             const logContainer = document.getElementById('activityLogContainer');
             logContainer.innerHTML = "";
-            if (!p.logs || p.logs.length === 0) {
+            const logs = [...(p.logs || [])].sort((a, b) => (b.ts || 0) - (a.ts || 0)).slice(0, 5);
+            if (logs.length === 0) {
                 logContainer.innerHTML = `<div class="text-[11px] text-slate-400 italic py-1">Henüz bir işlem kaydedilmedi.</div>`;
             } else {
-                p.logs.forEach(log => {
-                    const logItem = document.createElement('div');
-                    logItem.className = "flex items-center justify-between text-[11px] bg-slate-50 border border-slate-100 px-3 py-2 rounded-xl text-slate-600";
-                    logItem.innerHTML = `
-                        <span class="font-medium">${log.text}</span>
-                        <span class="text-[10px] text-slate-400">${log.time}</span>
-                    `;
-                    logContainer.appendChild(logItem);
+                logs.forEach(log => {
+                    const item = document.createElement('div');
+                    item.className = "flex items-center justify-between gap-3 text-[11px] bg-slate-50 border border-slate-100 px-3 py-2 rounded-xl text-slate-600";
+                    item.innerHTML = `
+                        <span class="font-medium">${esc(log.text)}${log.user ? ` <span class="text-slate-400 font-normal">· ${esc(log.user)}</span>` : ''}</span>
+                        <span class="text-[10px] text-slate-400 whitespace-nowrap">${esc(log.time)}</span>`;
+                    logContainer.appendChild(item);
                 });
             }
         }
 
-        function formatDate(dateStr) {
-            if(!dateStr) return "";
-            const parts = dateStr.split('-');
-            if(parts.length === 3) return `${parts[2]}.${parts[1]}.${parts[0]}`;
-            return dateStr;
+        // Alan bazlı güncelleme: eşzamanlı düzenlemeler birbirini ezmez
+        async function patchProduct(id, fields, actionDesc) {
+            const data = { ...fields };
+            if (actionDesc) data.logs = arrayUnion(logEntry(actionDesc));
+            try {
+                await updateDoc(doc(db, "products", id), data);
+            } catch (e) {
+                console.error(e);
+                toast("Kaydedilemedi: " + (e.code || e.message), 'error');
+            }
         }
 
         function toggleTopFlow(idx) {
             const p = products.find(x => x.id === currentProductId);
             if (!p) return;
-            if (!p.topFlow) p.topFlow = {};
-            p.topFlow[idx] = !p.topFlow[idx];
-            const action = p.topFlow[idx] ? `"${topFlowSteps[idx]}" tamamlandı` : `"${topFlowSteps[idx]}" işareti kaldırıldı`;
-            saveProductToFirestore(p, action);
+            const val = !p.topFlow?.[idx];
+            patchProduct(p.id, { [`topFlow.${idx}`]: val }, val ? `"${topFlowSteps[idx]}" tamamlandı` : `"${topFlowSteps[idx]}" işareti kaldırıldı`);
         }
 
         function toggleTsoft(idx) {
             const p = products.find(x => x.id === currentProductId);
             if (!p) return;
-            if (!p.tsoft) p.tsoft = {};
-            p.tsoft[idx] = !p.tsoft[idx];
-            const action = p.tsoft[idx] ? `[T-Soft] "${tsoftSteps[idx].name}" yapıldı` : `[T-Soft] "${tsoftSteps[idx].name}" geri alındı`;
-            saveProductToFirestore(p, action);
+            const val = !p.tsoft?.[idx];
+            patchProduct(p.id, { [`tsoft.${idx}`]: val }, val ? `[T-Soft] "${tsoftSteps[idx].name}" yapıldı` : `[T-Soft] "${tsoftSteps[idx].name}" geri alındı`);
         }
 
         function toggleMarketplace(idx) {
             const p = products.find(x => x.id === currentProductId);
             if (!p) return;
-            if (!p.marketplaces) p.marketplaces = {};
-            p.marketplaces[idx] = !p.marketplaces[idx];
-            const action = p.marketplaces[idx] ? `[Pazaryeri] ${marketplaces[idx].name} açıldı` : `[Pazaryeri] ${marketplaces[idx].name} kapatıldı`;
-            saveProductToFirestore(p, action);
+            const val = !p.marketplaces?.[idx];
+            patchProduct(p.id, { [`marketplaces.${idx}`]: val }, val ? `[Pazaryeri] ${marketplaces[idx].name} açıldı` : `[Pazaryeri] ${marketplaces[idx].name} kapatıldı`);
         }
 
         function saveProductNote() {
-            const p = products.find(x => x.id === currentProductId);
-            if (!p) return;
-            const noteText = document.getElementById('productNote').value;
-            
-            if (!p.logistics) p.logistics = {};
-            p.logistics.note = noteText;
-
+            const id = currentProductId;
+            if (!id) return;
+            const text = document.getElementById('productNote').value;
             clearTimeout(noteTimeout);
-            noteTimeout = setTimeout(() => {
-                saveProductToFirestore(p, "Operasyon notu güncellendi");
-            }, 800);
+            noteTimeout = setTimeout(() => patchProduct(id, { 'logistics.note': text }, "Operasyon notu güncellendi"), 800);
         }
 
-        function openNewProductModal() {
-            document.getElementById('productModal').classList.remove('hidden');
-        }
-
+        // ---------- Yeni ürün / lojistik / silme ----------
+        function openNewProductModal() { document.getElementById('productModal').classList.remove('hidden'); }
         function closeNewProductModal() {
             document.getElementById('productModal').classList.add('hidden');
             document.getElementById('productForm').reset();
         }
 
-        function handleProductSubmit(e) {
+        async function handleProductSubmit(e) {
             e.preventDefault();
-            const name = document.getElementById('modalName').value;
-            const sku = document.getElementById('modalSku').value;
-            const category = document.getElementById('modalCategory').value;
+            const name = document.getElementById('modalName').value.trim();
+            const sku = document.getElementById('modalSku').value.trim();
+            const category = document.getElementById('modalCategory').value.trim();
 
-            const nowStr = `${new Date().toLocaleDateString('tr-TR')} ${new Date().toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'})}`;
+            if (products.some(p => String(p.sku).toLowerCase() === sku.toLowerCase())) {
+                toast("Bu SKU ile kayıtlı bir ürün zaten var.", 'warn');
+                return;
+            }
+
             const newProduct = {
                 id: 'prod_' + Date.now(),
-                name,
-                sku,
-                category,
-                topFlow: {},
-                tsoft: {},
-                marketplaces: {},
+                name, sku, category,
+                topFlow: {}, tsoft: {}, marketplaces: {},
                 logistics: { stockQty: "", customsDate: "", warehouseDate: "", launchDate: "", note: "" },
-                logs: [{ text: "Ürün sisteme eklendi", time: nowStr }]
+                logs: [logEntry("Ürün sisteme eklendi")]
             };
-
-            saveProductToFirestore(newProduct);
-            closeNewProductModal();
-            selectProduct(newProduct.id);
+            try {
+                await setDoc(doc(db, "products", newProduct.id), newProduct);
+                closeNewProductModal();
+                selectProduct(newProduct.id);
+            } catch (err) {
+                console.error(err);
+                toast("Ürün eklenemedi: " + (err.code || err.message), 'error');
+            }
         }
 
         function openLogisticsModal() {
             const p = products.find(x => x.id === currentProductId);
             if (!p) return;
-            
             document.getElementById('logStockQty').value = p.logistics?.stockQty || "";
             document.getElementById('logCustomsDate').value = p.logistics?.customsDate || "";
             document.getElementById('logWarehouseDate').value = p.logistics?.warehouseDate || "";
             document.getElementById('logLaunchDate').value = p.logistics?.launchDate || "";
-
             document.getElementById('logisticsModal').classList.remove('hidden');
         }
-
-        function closeLogisticsModal() {
-            document.getElementById('logisticsModal').classList.add('hidden');
-        }
+        function closeLogisticsModal() { document.getElementById('logisticsModal').classList.add('hidden'); }
 
         async function handleLogisticsSubmit(e) {
             e.preventDefault();
             const p = products.find(x => x.id === currentProductId);
             if (!p) return;
-
-            if (!p.logistics) p.logistics = {};
-            p.logistics.stockQty = document.getElementById('logStockQty').value;
-            p.logistics.customsDate = document.getElementById('logCustomsDate').value;
-            p.logistics.warehouseDate = document.getElementById('logWarehouseDate').value;
-            p.logistics.launchDate = document.getElementById('logLaunchDate').value;
-
-            await saveProductToFirestore(p, "Lojistik & takvim güncellendi");
+            await patchProduct(p.id, {
+                'logistics.stockQty': document.getElementById('logStockQty').value.trim(),
+                'logistics.customsDate': document.getElementById('logCustomsDate').value,
+                'logistics.warehouseDate': document.getElementById('logWarehouseDate').value,
+                'logistics.launchDate': document.getElementById('logLaunchDate').value
+            }, "Lojistik & takvim güncellendi");
             closeLogisticsModal();
-            renderProductDetails();
         }
 
         async function deleteCurrentProduct() {
-            if (!confirm("Bu ürünü silmek istediğinize emin misiniz?")) return;
-            await deleteDoc(doc(db, "products", currentProductId));
-            goHome();
+            if (!currentProductId || !confirm("Bu ürünü silmek istediğinize emin misiniz?")) return;
+            try {
+                await deleteDoc(doc(db, "products", currentProductId));
+                goHome();
+            } catch (err) {
+                toast("Silinemedi: " + (err.code || err.message), 'error');
+            }
+        }
+
+        // ---------- Mail şablonları ----------
+        async function copyText(text, okMsg) {
+            try {
+                await navigator.clipboard.writeText(text);
+                toast(okMsg);
+            } catch (e) {
+                toast("Panoya kopyalanamadı. Tarayıcı iznini kontrol edin.", 'error');
+            }
         }
 
         function copyContentEmailTemplate() {
             const p = products.find(x => x.id === currentProductId);
             if (!p) return;
-            const text = `Halil Bey merhaba,\n\nYeni ürünümüz olan ${p.sku} kodlu ${p.name} web sitemizde satışa açılacaktır.\n\nBu ürünlerin ürün kartlarında kullanılacak içeriklere dair taleplerimizi ekte iletiyorum.\n\nİçeriklerin hazırlanması ile ilgili desteğinizi rica ederim.\n\nİyi çalışmalar,`;
-            navigator.clipboard.writeText(text).then(() => {
-                alert("İçerik talep maili panoya kopyalandı!");
-            });
+            copyText(`Halil Bey merhaba,\n\nYeni ürünümüz olan ${p.sku} kodlu ${p.name} web sitemizde satışa açılacaktır.\n\nBu ürünlerin ürün kartlarında kullanılacak içeriklere dair taleplerimizi ekte iletiyorum.\n\nİçeriklerin hazırlanması ile ilgili desteğinizi rica ederim.\n\nİyi çalışmalar,`, "İçerik talep maili panoya kopyalandı.");
         }
 
         function copyStockEmailTemplate() {
             const p = products.find(x => x.id === currentProductId);
             if (!p) return;
             const stockQty = p.logistics?.stockQty || "Belirtilmedi";
-            const text = `Emre Bey merhaba,\n\nAşağıdaki stokların f029 deposuna virman yapılmasını rica ederim.\n\nSKU: ${p.sku}\tÜrün Adı: ${p.name}\tTalep Adedi: ${stockQty}\n\nİyi çalışmalar,`;
-            navigator.clipboard.writeText(text).then(() => {
-                alert("Stok talep maili panoya kopyalandı!");
-            });
+            copyText(`Emre Bey merhaba,\n\nAşağıdaki stokların f029 deposuna virman yapılmasını rica ederim.\n\nSKU: ${p.sku}\tÜrün Adı: ${p.name}\tTalep Adedi: ${stockQty}\n\nİyi çalışmalar,`, "Stok talep maili panoya kopyalandı.");
         }
 
+        // ---------- Gerçek .xlsx dışa aktarım ----------
         function exportToExcel() {
-            if (products.length === 0) {
-                alert("Dışa aktarılacak ürün bulunmuyor!");
-                return;
-            }
-
-            let csvContent = "\uFEFF"; 
-            let headers = ["Ürün Adı", "Ürün Kodu", "Kategori", "Talep Edilen Stok", "Gümrükten Geçiş", "Depoya Giriş", "Pazaryeri Canlı", "Operasyon / Gecikme Notu", "Genel Tamamlanma"];
+            if (products.length === 0) { toast("Dışa aktarılacak ürün bulunmuyor.", 'warn'); return; }
+            const headers = ["Ürün Adı", "Ürün Kodu", "Kategori", "Talep Edilen Stok", "Gümrükten Geçiş", "Depoya Giriş", "Pazaryeri Canlı", "Operasyon / Gecikme Notu", "Genel Tamamlanma"];
             topFlowSteps.forEach(s => headers.push(s));
             tsoftSteps.forEach(s => headers.push(s.name));
             marketplaces.forEach(m => headers.push(`${m.name} Açıldı mı?`));
 
-            csvContent += headers.join(";") + "\n";
-
+            const rows = [headers];
             products.forEach(p => {
-                const progress = calculateProgress(p);
-                let row = [
-                    `"${p.name.replace(/"/g, '""')}"`,
-                    `"${p.sku.replace(/"/g, '""')}"`,
-                    `"${p.category.replace(/"/g, '""')}"`,
-                    `"${p.logistics?.stockQty || ""}"`,
-                    `"${p.logistics?.customsDate || ""}"`,
-                    `"${p.logistics?.warehouseDate || ""}"`,
-                    `"${p.logistics?.launchDate || ""}"`,
-                    `"${(p.logistics?.note || "").replace(/"/g, '""')}"`,
-                    `"%${progress}"`
+                const row = [
+                    String(p.name || ''), String(p.sku || ''), String(p.category || ''),
+                    String(p.logistics?.stockQty || ''), String(p.logistics?.customsDate || ''),
+                    String(p.logistics?.warehouseDate || ''), String(p.logistics?.launchDate || ''),
+                    String(p.logistics?.note || ''), `%${calculateProgress(p)}`
                 ];
-
-                topFlowSteps.forEach((_, idx) => { row.push(p.topFlow && p.topFlow[idx] ? "Evet" : "Hayır"); });
-                tsoftSteps.forEach((_, idx) => { row.push(p.tsoft && p.tsoft[idx] ? "Evet" : "Hayır"); });
-                marketplaces.forEach((_, idx) => { row.push(p.marketplaces && p.marketplaces[idx] ? "Evet" : "Hayır"); });
-
-                csvContent += row.join(";") + "\n";
+                topFlowSteps.forEach((_, i) => row.push(p.topFlow?.[i] ? "Evet" : "Hayır"));
+                tsoftSteps.forEach((_, i) => row.push(p.tsoft?.[i] ? "Evet" : "Hayır"));
+                marketplaces.forEach((_, i) => row.push(p.marketplaces?.[i] ? "Evet" : "Hayır"));
+                rows.push(row);
             });
 
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement("a");
-            link.setAttribute("href", url);
-            link.setAttribute("download", "e-ticaret_lojistik_ve_operasyon_raporu.csv");
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            const ws = XLSX.utils.aoa_to_sheet(rows);
+            ws['!cols'] = headers.map((h, i) => ({ wch: i === 0 ? 40 : i === 7 ? 40 : Math.max(14, Math.min(h.length + 2, 30)) }));
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Operasyon");
+            XLSX.writeFile(wb, "e-ticaret_lojistik_ve_operasyon_raporu.xlsx");
         }
 
-        // ================= FATURA MODÜLÜ SCRIPTS =================
+        // ================= FATURA MODÜLÜ =================
+        function daysSince(dateStr) {
+            if (!dateStr) return 0;
+            return Math.floor((Date.now() - new Date(dateStr + 'T00:00:00').getTime()) / 86400000);
+        }
+
         function renderInvoicesTable() {
             const tbody = document.getElementById('invoiceTableBody');
             if (!tbody) return;
-            tbody.innerHTML = "";
+            const filter = document.getElementById('invoiceFilter')?.value || 'all';
 
-            if (invoices.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="8" class="text-center py-12 text-slate-400">Henüz kaydedilmiş fatura bulunmuyor.</td></tr>`;
+            const list = [...invoices]
+                .filter(inv => filter === 'all' || (filter === 'undelivered' && !inv.accountingSubmitted) || (filter === 'nosos' && !inv.sos))
+                .sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            if (list.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" class="text-center py-12 text-slate-400">Gösterilecek fatura bulunmuyor.</td></tr>`;
                 return;
             }
 
-            invoices.sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(inv => {
-                const tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-50 transition border-b border-slate-100";
-                
-                const formattedAmount = Number(inv.amount || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                const sosBadge = inv.sos ? `<span class="bg-amber-100 text-amber-800 font-bold px-2.5 py-1 rounded-full text-[10px]">Açıldı</span>` : `<span class="bg-slate-100 text-slate-500 font-medium px-2.5 py-1 rounded-full text-[10px]">Açılmadı</span>`;
-                
-                let accountingInfo = `<span class="text-slate-400 font-medium">Teslim Edilmedi</span>`;
-                if (inv.accountingSubmitted) {
-                    accountingInfo = `<div class="flex flex-col"><span class="text-emerald-600 font-bold">Teslim Edildi</span><span class="text-[10px] text-slate-400">${formatDate(inv.accountingDate)}</span></div>`;
-                }
+            tbody.innerHTML = list.map(inv => {
+                const amount = Number(inv.amount || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                const sosBadge = inv.sos
+                    ? `<span class="bg-amber-100 text-amber-800 font-bold px-2.5 py-1 rounded-full text-[10px]">Açıldı</span>`
+                    : `<span class="bg-slate-100 text-slate-500 font-medium px-2.5 py-1 rounded-full text-[10px]">Açılmadı</span>`;
+                const late = !inv.accountingSubmitted && daysSince(inv.date) > 7;
+                const accountingInfo = inv.accountingSubmitted
+                    ? `<div class="flex flex-col"><span class="text-emerald-600 font-bold">Teslim Edildi</span><span class="text-[10px] text-slate-400">${esc(formatDate(inv.accountingDate))}</span></div>`
+                    : `<div class="flex flex-col"><span class="${late ? 'text-red-600 font-bold' : 'text-slate-400 font-medium'}">Teslim Edilmedi</span>${late ? `<span class="text-[10px] text-red-500">${daysSince(inv.date)} gündür bekliyor</span>` : ''}</div>`;
+                const receiver = inv.accountingSubmitted && inv.receiverName
+                    ? `<span class="font-semibold text-slate-700">${esc(inv.receiverName)}</span>` : `<span class="text-slate-300">-</span>`;
 
-                const receiverInfo = inv.accountingSubmitted && inv.receiverName 
-                    ? `<span class="font-semibold text-slate-700">${inv.receiverName}</span>` 
-                    : `<span class="text-slate-300">-</span>`;
-
-                tr.innerHTML = `
-                    <td class="p-4 font-bold text-slate-800">${inv.title}</td>
-                    <td class="p-4 text-slate-600 max-w-xs truncate">${inv.detail || "-"}</td>
-                    <td class="p-4 font-bold text-brand-700">₺${formattedAmount}</td>
-                    <td class="p-4 text-slate-600">${formatDate(inv.date)}</td>
+                return `
+                <tr class="hover:bg-slate-50 transition border-b border-slate-100 ${late ? 'bg-red-50/40' : ''}">
+                    <td class="p-4 font-bold text-slate-800">${esc(inv.title)}</td>
+                    <td class="p-4 text-slate-600 max-w-xs truncate" title="${esc(inv.detail)}">${esc(inv.detail || "-")}</td>
+                    <td class="p-4 font-bold text-brand-700">₺${amount}</td>
+                    <td class="p-4 text-slate-600">${esc(formatDate(inv.date))}</td>
                     <td class="p-4 text-center">${sosBadge}</td>
                     <td class="p-4">${accountingInfo}</td>
-                    <td class="p-4">${receiverInfo}</td>
-                    <td class="p-4 text-center space-x-2">
-                        <button onclick="editInvoice('${inv.id}')" class="text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 p-2 rounded-lg transition" title="Düzenle">
-                            <i class="fa-solid fa-pen"></i>
-                        </button>
-                        <button onclick="deleteInvoice('${inv.id}')" class="text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100 p-2 rounded-lg transition" title="Sil">
-                            <i class="fa-solid fa-trash"></i>
-                        </button>
+                    <td class="p-4">${receiver}</td>
+                    <td class="p-4 text-center space-x-2 whitespace-nowrap">
+                        <button data-action="edit" data-id="${esc(inv.id)}" class="text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 p-2 rounded-lg transition" title="Düzenle"><i class="fa-solid fa-pen pointer-events-none"></i></button>
+                        <button data-action="delete" data-id="${esc(inv.id)}" class="text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100 p-2 rounded-lg transition" title="Sil"><i class="fa-solid fa-trash pointer-events-none"></i></button>
                     </td>
-                `;
-                tbody.appendChild(tr);
-            });
+                </tr>`;
+            }).join('');
         }
 
+        document.getElementById('invoiceTableBody').addEventListener('click', (e) => {
+            const btn = e.target.closest('button[data-action]');
+            if (!btn) return;
+            if (btn.dataset.action === 'edit') editInvoice(btn.dataset.id);
+            if (btn.dataset.action === 'delete') deleteInvoice(btn.dataset.id);
+        });
+
         function openInvoiceModal() {
-            document.getElementById('invId').value = "";
             document.getElementById('invoiceForm').reset();
+            document.getElementById('invId').value = "";
             document.getElementById('invoiceModalTitle').textContent = "Yeni Fatura Ekle";
             toggleAccountingDateField(false);
             document.getElementById('invoiceModal').classList.remove('hidden');
         }
-
-        function closeInvoiceModal() {
-            document.getElementById('invoiceModal').classList.add('hidden');
-        }
+        function closeInvoiceModal() { document.getElementById('invoiceModal').classList.add('hidden'); }
 
         function toggleAccountingDateField(show) {
             const container = document.getElementById('accountingDateContainer');
-            if (show) {
-                container.classList.remove('hidden');
-            } else {
-                container.classList.add('hidden');
+            container.classList.toggle('hidden', !show);
+            if (!show) {
                 document.getElementById('invAccountingDate').value = "";
                 document.getElementById('invReceiverName').value = "";
             }
@@ -1289,20 +1160,17 @@
         function editInvoice(id) {
             const inv = invoices.find(x => x.id === id);
             if (!inv) return;
-
             document.getElementById('invId').value = inv.id;
             document.getElementById('invTitle').value = inv.title || "";
             document.getElementById('invDetail').value = inv.detail || "";
-            document.getElementById('invAmount').value = inv.amount || "";
+            document.getElementById('invAmount').value = inv.amount ?? "";
             document.getElementById('invDate').value = inv.date || "";
             document.getElementById('invSos').checked = !!inv.sos;
-            
-            const accSubmitted = !!inv.accountingSubmitted;
-            document.getElementById('invAccountingSubmitted').checked = accSubmitted;
-            toggleAccountingDateField(accSubmitted);
+            const acc = !!inv.accountingSubmitted;
+            document.getElementById('invAccountingSubmitted').checked = acc;
+            toggleAccountingDateField(acc);
             document.getElementById('invAccountingDate').value = inv.accountingDate || "";
             document.getElementById('invReceiverName').value = inv.receiverName || "";
-
             document.getElementById('invoiceModalTitle').textContent = "Faturayı Düzenle";
             document.getElementById('invoiceModal').classList.remove('hidden');
         }
@@ -1310,44 +1178,50 @@
         async function handleInvoiceSubmit(e) {
             e.preventDefault();
             const id = document.getElementById('invId').value || ('inv_' + Date.now());
-            const title = document.getElementById('invTitle').value;
-            const detail = document.getElementById('invDetail').value;
-            const amount = parseFloat(document.getElementById('invAmount').value) || 0;
-            const date = document.getElementById('invDate').value;
-            const sos = document.getElementById('invSos').checked;
             const accountingSubmitted = document.getElementById('invAccountingSubmitted').checked;
-            const accountingDate = document.getElementById('invAccountingDate').value;
-            const receiverName = document.getElementById('invReceiverName').value;
-
             const invoiceObj = {
                 id,
-                title,
-                detail,
-                amount,
-                date,
-                sos,
+                title: document.getElementById('invTitle').value.trim(),
+                detail: document.getElementById('invDetail').value.trim(),
+                amount: Math.round((parseFloat(document.getElementById('invAmount').value) || 0) * 100) / 100,
+                date: document.getElementById('invDate').value,
+                sos: document.getElementById('invSos').checked,
                 accountingSubmitted,
-                accountingDate: accountingSubmitted ? accountingDate : "",
-                receiverName: accountingSubmitted ? receiverName : ""
+                accountingDate: accountingSubmitted ? document.getElementById('invAccountingDate').value : "",
+                receiverName: accountingSubmitted ? document.getElementById('invReceiverName').value.trim() : "",
+                updatedBy: auth.currentUser?.email || "",
+                updatedAt: Date.now()
             };
-
-            await setDoc(doc(db, "invoices", id), invoiceObj);
-            closeInvoiceModal();
+            try {
+                await setDoc(doc(db, "invoices", id), invoiceObj);
+                closeInvoiceModal();
+            } catch (err) {
+                console.error(err);
+                toast("Fatura kaydedilemedi: " + (err.code || err.message), 'error');
+            }
         }
 
         async function deleteInvoice(id) {
             if (!confirm("Bu faturayı silmek istediğinize emin misiniz?")) return;
-            await deleteDoc(doc(db, "invoices", id));
+            try { await deleteDoc(doc(db, "invoices", id)); }
+            catch (err) { toast("Silinemedi: " + (err.code || err.message), 'error'); }
         }
 
-        // ================= STOK TALEP (VİRMAN) MODÜLÜ SCRIPTS =================
+        // ================= STOK TALEP (VİRMAN) MODÜLÜ =================
+        const LS_DATA = 'istakip_stock_data_v1';
+        const LS_DEMANDS = 'istakip_stock_demands_v1';
+        const STOCK_ROW_LIMIT = 700;
+
         const S_fn = v => String(v ?? '').trim().replace(/\.0$/, '');
-        const S_esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
         const S_num = v => { const x = parseFloat(String(v ?? '').replace(',', '.')); return isNaN(x) ? 0 : x; };
         const S_fmt = n => n == null ? '—' : n.toLocaleString('tr-TR');
-
         const S_findRow = (R, name) => R.findIndex(r => r && r.some(c => S_fn(c).toLowerCase() === name.toLowerCase()));
-        
+        const cap = k => k.charAt(0).toUpperCase() + k.slice(1);
+
+        const stockData = { ts: null, st: null, sl: null };
+        const stockDemands = {};
+        let stockRows = [];
+
         const S_parsers = {
             ts(R) {
                 const h = S_findRow(R, 'Web Servis Kodu');
@@ -1371,51 +1245,76 @@
                 while (R[h + 1] && S_fn(R[h + 1][0]) === 'Malzeme') h++;
                 if (a < 0 || b < 0) throw new Error('F028 / F029 kolonları bulunamadı');
                 return R.slice(h + 1).filter(r => r && S_fn(r[0]) && !/toplam/i.test(S_fn(r[0]))).map(r => ({
-                    code: S_fn(r[0]),
-                    name: S_fn(r[1]),
-                    f28: S_num(r[a]),
-                    f29: S_num(r[b])
+                    code: S_fn(r[0]), name: S_fn(r[1]), f28: S_num(r[a]), f29: S_num(r[b])
                 }));
             },
             sl(R) {
                 const h = S_findRow(R, 'Malzeme');
                 if (h < 0) throw new Error('“Malzeme” başlığı bulunamadı');
                 const H = R[h].map(S_fn), cc = H.findIndex(x => x.toLowerCase() === 'malzeme');
-                let q = -1, y = H.findIndex(x => /^2026/.test(x));
+                let q = -1;
+                const y = H.findIndex(x => /^2026/.test(x));
                 R.slice(0, h + 3).forEach(r => (r || []).forEach((c, i) => {
                     if (/^(sipariş|satış) adedi$/i.test(S_fn(c))) q = i;
                 }));
                 const k = q >= 0 ? q : y;
                 if (k < 0) throw new Error('Satış adedi kolonu bulunamadı');
                 return R.slice(h + 1).filter(r => r && S_fn(r[cc]) && !/toplam/i.test(S_fn(r[cc]))).map(r => ({
-                    code: S_fn(r[cc]),
-                    sl: S_num(r[k])
+                    code: S_fn(r[cc]), sl: S_num(r[k])
                 }));
             }
         };
 
+        function setUploadLabel(key, ok, text) {
+            const labelEl = document.getElementById('upLabel' + cap(key));
+            const textEl = document.getElementById('txt' + cap(key));
+            labelEl.className = ok
+                ? "bg-brand-600/20 border border-brand-500 rounded-xl px-3 py-2 cursor-pointer text-xs font-medium flex items-center space-x-2 transition text-brand-300"
+                : "bg-red-600/20 border border-red-500 rounded-xl px-3 py-2 cursor-pointer text-xs font-medium flex items-center space-x-2 transition text-red-300";
+            textEl.textContent = text;
+        }
+
+        function saveStockData() {
+            try { localStorage.setItem(LS_DATA, JSON.stringify(stockData)); }
+            catch (e) { toast("Excel verisi tarayıcıya kaydedilemedi (dosya çok büyük olabilir). Sayfayı yenilerseniz tekrar yüklemeniz gerekir.", 'warn'); }
+        }
+        function saveStockDemands() {
+            try { localStorage.setItem(LS_DEMANDS, JSON.stringify(stockDemands)); } catch (e) { /* sessiz */ }
+        }
+
+        function restoreStockState() {
+            try {
+                const d = JSON.parse(localStorage.getItem(LS_DATA) || 'null');
+                if (d) {
+                    ['ts', 'st', 'sl'].forEach(k => {
+                        if (Array.isArray(d[k])) {
+                            stockData[k] = d[k];
+                            setUploadLabel(k, true, `${k.toUpperCase()} ✓ (${d[k].length} satır) · kayıtlı`);
+                        }
+                    });
+                }
+                const dm = JSON.parse(localStorage.getItem(LS_DEMANDS) || 'null');
+                if (dm && typeof dm === 'object') Object.assign(stockDemands, dm);
+            } catch (e) { console.warn('Stok verisi geri yüklenemedi', e); }
+            buildStockRows();
+        }
+
         async function handleStockUpload(key) {
-            const fileInput = document.getElementById('file' + key.charAt(0).toUpperCase() + key.slice(1));
-            const labelEl = document.getElementById('upLabel' + key.charAt(0).toUpperCase() + key.slice(1));
-            const textEl = document.getElementById('txt' + key.charAt(0).toUpperCase() + key.slice(1));
-            
+            const fileInput = document.getElementById('file' + cap(key));
             const file = fileInput.files[0];
             if (!file) return;
-
             try {
                 const wb = XLSX.read(await file.arrayBuffer(), { type: 'array' });
                 const sheet = wb.Sheets[wb.SheetNames[0]];
                 const raw = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: null });
-                
                 stockData[key] = S_parsers[key](raw);
-                labelEl.className = "bg-brand-600/20 border border-brand-500 rounded-xl px-3 py-2 cursor-pointer text-xs font-medium flex items-center space-x-2 transition text-brand-300";
-                textEl.textContent = `${key.toUpperCase()} ✓ (${stockData[key].length} satır)`;
-                
+                setUploadLabel(key, true, `${key.toUpperCase()} ✓ (${stockData[key].length} satır)`);
+                saveStockData();
                 buildStockRows();
             } catch (e) {
-                labelEl.className = "bg-red-600/20 border border-red-500 rounded-xl px-3 py-2 cursor-pointer text-xs font-medium flex items-center space-x-2 transition text-red-300";
-                textEl.textContent = `Hata: ${e.message || e}`;
+                setUploadLabel(key, false, `Hata: ${e.message || e}`);
             }
+            fileInput.value = '';
         }
 
         function buildStockRows() {
@@ -1423,19 +1322,11 @@
             const stMap = new Map(stockData.st.map(x => [x.code, x]));
             const slMap = new Map((stockData.sl || []).map(x => [x.code, x.sl]));
             const hasSales = !!stockData.sl;
-
-            if (hasSales) {
-                document.getElementById('thSalesHeader').style.display = 'table-cell';
-            }
+            document.getElementById('thSalesHeader').style.display = hasSales ? 'table-cell' : 'none';
 
             stockRows = stockData.ts.map(t => {
                 const s = stMap.get(t.code);
-                return {
-                    ...t,
-                    f28: s ? s.f28 : 0,
-                    f29: s ? s.f29 : 0,
-                    sl: hasSales ? (slMap.has(t.code) ? slMap.get(t.code) : null) : undefined
-                };
+                return { ...t, f28: s ? s.f28 : 0, f29: s ? s.f29 : 0, sl: hasSales ? (slMap.has(t.code) ? slMap.get(t.code) : null) : undefined };
             });
             renderStockTable();
         }
@@ -1461,123 +1352,137 @@
             });
 
             const tbody = document.getElementById('stockTableBody');
-            tbody.innerHTML = filtered.slice(0, 700).map(p => {
+            if (stockRows.length === 0) {
+                updateStockMailPreview();
+                return;
+            }
+
+            const shown = filtered.slice(0, STOCK_ROW_LIMIT);
+            let html = shown.map(p => {
                 const z = stockDemands[p.code] || { t: 0, e: 0 };
                 const T = z.t + z.e;
-                const isSelected = T > 0;
-                const isExceeded = T > p.f28;
-
                 return `
-                    <tr data-code="${S_esc(p.code)}" class="${isSelected ? 'bg-brand-50/50' : ''} hover:bg-slate-50 transition border-b border-slate-100">
-                        <td class="p-3 font-semibold text-slate-700">${S_esc(p.code)}</td>
-                        <td class="p-3 font-medium text-slate-900">${S_esc(p.name)}</td>
+                    <tr data-code="${esc(p.code)}" class="${T > 0 ? 'bg-brand-50/50' : ''} hover:bg-slate-50 transition border-b border-slate-100">
+                        <td class="p-3 font-semibold text-slate-700">${esc(p.code)}</td>
+                        <td class="p-3 font-medium text-slate-900">${esc(p.name)}</td>
                         <td class="p-3 text-right font-medium ${p.ts < 10 ? 'text-red-600 font-bold' : 'text-slate-600'}">${S_fmt(p.ts)}</td>
                         <td class="p-3 text-right font-bold text-slate-800">${S_fmt(p.f28)}</td>
                         <td class="p-3 text-right text-slate-600">${S_fmt(p.f29)}</td>
                         ${hasSales ? `<td class="p-3 text-right text-slate-400 text-[11px]">${p.sl == null ? '—' : S_fmt(p.sl)}</td>` : ''}
-                        <td class="p-3 text-right">
-                            <input type="number" min="0" value="${z.t || ''}" oninput="handleDemandInput('${S_esc(p.code)}', 't', this.value)" class="w-16 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-right focus:outline-none focus:border-brand-500 text-xs">
-                        </td>
-                        <td class="p-3 text-right">
-                            <input type="number" min="0" value="${z.e || ''}" oninput="handleDemandInput('${S_esc(p.code)}', 'e', this.value)" class="w-16 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-right focus:outline-none focus:border-brand-500 text-xs">
-                        </td>
-                        <td class="p-3 text-right font-bold ${isExceeded ? 'text-red-600' : 'text-brand-700'}">${T || ''}</td>
-                    </tr>
-                `;
-            }).join('') || `<tr><td colspan="9" class="text-center py-12 text-slate-400">Ürün bulunamadı.</td></tr>`;
+                        <td class="p-3 text-right"><input type="number" min="0" data-code="${esc(p.code)}" data-type="t" value="${z.t || ''}" class="demand-input w-16 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-right focus:outline-none focus:border-brand-500 text-xs"></td>
+                        <td class="p-3 text-right"><input type="number" min="0" data-code="${esc(p.code)}" data-type="e" value="${z.e || ''}" class="demand-input w-16 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-right focus:outline-none focus:border-brand-500 text-xs"></td>
+                        <td class="total-cell p-3 text-right font-bold ${T > p.f28 ? 'text-red-600' : 'text-brand-700'}">${T || ''}</td>
+                    </tr>`;
+            }).join('');
 
-            document.getElementById('stockCountBadge').textContent = `${filtered.length} Ürün`;
+            if (shown.length === 0) html = `<tr><td colspan="9" class="text-center py-12 text-slate-400">Ürün bulunamadı.</td></tr>`;
+            if (filtered.length > STOCK_ROW_LIMIT) {
+                html += `<tr><td colspan="9" class="text-center py-3 text-[11px] text-amber-700 bg-amber-50">İlk ${STOCK_ROW_LIMIT} ürün gösteriliyor (toplam ${filtered.length}). Aramayı veya filtreleri daraltın.</td></tr>`;
+            }
+            tbody.innerHTML = html;
+
+            document.getElementById('stockCountBadge').textContent = filtered.length > STOCK_ROW_LIMIT
+                ? `${STOCK_ROW_LIMIT} / ${filtered.length} gösteriliyor` : `${filtered.length} Ürün`;
             updateStockMailPreview();
         }
 
-        function handleDemandInput(code, type, val) {
+        // Tüm tabloyu yeniden çizmeden yalnızca ilgili satırı günceller (imleç kaybolmaz)
+        document.getElementById('stockTableBody').addEventListener('input', (e) => {
+            const el = e.target.closest('.demand-input');
+            if (!el) return;
+            handleDemandInput(el.dataset.code, el.dataset.type, el.value, el.closest('tr'));
+        });
+
+        function handleDemandInput(code, type, val, tr) {
             if (!stockDemands[code]) stockDemands[code] = { t: 0, e: 0 };
             stockDemands[code][type] = Math.max(0, Math.floor(parseFloat(val) || 0));
-            if (stockDemands[code].t === 0 && stockDemands[code].e === 0) {
-                delete stockDemands[code];
+            if (stockDemands[code].t === 0 && stockDemands[code].e === 0) delete stockDemands[code];
+            saveStockDemands();
+
+            if (tr) {
+                const T = getStockTotal(code);
+                const row = stockRows.find(r => r.code === code);
+                const cell = tr.querySelector('.total-cell');
+                cell.textContent = T || '';
+                const exceeded = row && T > row.f28;
+                cell.classList.toggle('text-red-600', !!exceeded);
+                cell.classList.toggle('text-brand-700', !exceeded);
+                tr.classList.toggle('bg-brand-50/50', T > 0);
             }
-            renderStockTable();
+            updateStockMailPreview();
         }
 
         function clearStockDemands() {
             for (const k in stockDemands) delete stockDemands[k];
+            saveStockDemands();
             renderStockTable();
         }
 
         function updateStockMailPreview() {
             const who = document.getElementById('mailWhoInput').value.trim() || 'Emre Bey';
+            document.getElementById('stockMailGreeting').textContent = `${who} merhaba,`;
             const items = stockRows.filter(p => getStockTotal(p.code) > 0);
-            
+
             const tbody = document.getElementById('stockMailTableBody');
-            if (items.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="3" style="border:1px solid #b4c6e7;padding:8px;text-align:center;color:#64748b;">Henüz ürün seçilmedi.</td></tr>`;
-            } else {
-                tbody.innerHTML = items.map(p => `
+            tbody.innerHTML = items.length === 0
+                ? `<tr><td colspan="3" style="border:1px solid #b4c6e7;padding:8px;text-align:center;color:#64748b;">Henüz ürün seçilmedi.</td></tr>`
+                : items.map(p => `
                     <tr>
-                        <td style="border:1px solid #b4c6e7;padding:6px 10px">${S_esc(p.code)}</td>
-                        <td style="border:1px solid #b4c6e7;padding:6px 10px">${S_esc(p.name)}</td>
+                        <td style="border:1px solid #b4c6e7;padding:6px 10px">${esc(p.code)}</td>
+                        <td style="border:1px solid #b4c6e7;padding:6px 10px">${esc(p.name)}</td>
                         <td style="border:1px solid #b4c6e7;padding:6px 10px;background:#fce4ec;font-weight:bold;text-align:right">${getStockTotal(p.code)}</td>
-                    </tr>
-                `).join('');
-            }
+                    </tr>`).join('');
 
             const warnings = [];
             if (items.length > 30) warnings.push(`${items.length} ürün seçildi (Önerilen max 30)`);
-            const exceededCount = items.filter(p => getStockTotal(p.code) > p.f28).length;
-            if (exceededCount > 0) warnings.push(`${exceededCount} üründe talep F028 çekilebilir stoğunu aşıyor!`);
-            
+            const exceeded = items.filter(p => getStockTotal(p.code) > p.f28).length;
+            if (exceeded > 0) warnings.push(`${exceeded} üründe talep F028 çekilebilir stoğunu aşıyor!`);
             document.getElementById('stockMailWarning').textContent = warnings.join(' · ');
         }
 
-        function copyStockMailToClipboard() {
+        async function copyStockMailToClipboard() {
             const who = document.getElementById('mailWhoInput').value.trim() || 'Emre Bey';
             const items = stockRows.filter(p => getStockTotal(p.code) > 0);
-            
+            if (items.length === 0) { toast("Önce en az bir ürüne talep girin.", 'warn'); return; }
+
             const html = `
                 <div style="font-family:Calibri,Arial,sans-serif;font-size:14px;color:#000">
-                    <p>${S_esc(who)} merhaba,</p>
+                    <p>${esc(who)} merhaba,</p>
                     <p>Aşağıdaki stokların f029 deposuna virman yapılmasını rica ederim.</p>
                     <table style="border-collapse:collapse;font-family:Calibri,Arial,sans-serif;font-size:14px">
-                        <thead>
+                        <thead><tr>
+                            <th style="background:#4472c4;color:#fff;border:1px solid #2f528f;padding:5px 10px;text-align:left">Malzeme Kodu</th>
+                            <th style="background:#4472c4;color:#fff;border:1px solid #2f528f;padding:5px 10px;text-align:left">Malzeme Adı</th>
+                            <th style="background:#4472c4;color:#fff;border:1px solid #2f528f;padding:5px 10px;text-align:right">Talep Stok</th>
+                        </tr></thead>
+                        <tbody>${items.map(p => `
                             <tr>
-                                <th style="background:#4472c4;color:#fff;border:1px solid #2f528f;padding:5px 10px;text-align:left">Malzeme Kodu</th>
-                                <th style="background:#4472c4;color:#fff;border:1px solid #2f528f;padding:5px 10px;text-align:left">Malzeme Adı</th>
-                                <th style="background:#4472c4;color:#fff;border:1px solid #2f528f;padding:5px 10px;text-align:right">Talep Stok</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${items.map(p => `
-                                <tr>
-                                    <td style="border:1px solid #b4c6e7;padding:4px 10px">${S_esc(p.code)}</td>
-                                    <td style="border:1px solid #b4c6e7;padding:4px 10px">${S_esc(p.name)}</td>
-                                    <td style="border:1px solid #b4c6e7;padding:4px 10px;background:#fce4ec;font-weight:bold;text-align:right">${getStockTotal(p.code)}</td>
-                                </tr>
-                            `).join('')}
+                                <td style="border:1px solid #b4c6e7;padding:4px 10px">${esc(p.code)}</td>
+                                <td style="border:1px solid #b4c6e7;padding:4px 10px">${esc(p.name)}</td>
+                                <td style="border:1px solid #b4c6e7;padding:4px 10px;background:#fce4ec;font-weight:bold;text-align:right">${getStockTotal(p.code)}</td>
+                            </tr>`).join('')}
                         </tbody>
                     </table>
                     <p>İyi çalışmalar,</p>
-                </div>
-            `;
+                </div>`;
 
-            const plainText = `${who} merhaba,\n\nAşağıdaki stokların f029 deposuna virman yapılmasını rica ederim.\n\n` + 
-                items.map(p => `${p.code}\t${p.name}\t${getStockTotal(p.code)}`).join('\n') + 
-                `\n\nİyi çalışmalar,`;
+            const plainText = `${who} merhaba,\n\nAşağıdaki stokların f029 deposuna virman yapılmasını rica ederim.\n\n` +
+                items.map(p => `${p.code}\t${p.name}\t${getStockTotal(p.code)}`).join('\n') + `\n\nİyi çalışmalar,`;
 
             try {
-                navigator.clipboard.write([
-                    new ClipboardItem({
-                        'text/html': new Blob([html], { type: 'text/html' }),
-                        'text/plain': new Blob([plainText], { type: 'text/plain' })
-                    })
-                ]).then(() => {
-                    alert("✓ Stok talep tablosu ve mail metni panoya kopyalandı! Doğrudan maile yapıştırabilirsiniz.");
-                });
+                if (!window.ClipboardItem) throw new Error('no-clipboard-item');
+                await navigator.clipboard.write([new ClipboardItem({
+                    'text/html': new Blob([html], { type: 'text/html' }),
+                    'text/plain': new Blob([plainText], { type: 'text/plain' })
+                })]);
+                toast("Stok talep tablosu panoya kopyalandı. Doğrudan maile yapıştırabilirsiniz.");
             } catch (err) {
-                navigator.clipboard.writeText(plainText).then(() => {
-                    alert("Tablo metin olarak panoya kopyalandı.");
-                });
+                copyText(plainText, "Tablo metin olarak panoya kopyalandı.");
             }
         }
+
+        // Başlangıç
+        restoreStockState();
     </script>
 </body>
 </html>
